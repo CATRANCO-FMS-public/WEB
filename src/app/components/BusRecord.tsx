@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  createVehicleAssignment,
   getAllVehicleAssignments,
 } from "@/app/services/vehicleAssignService";
 import EditBusRecordModal from "@/app/components/EditBusRecordModal";
 import EditPersonnelModal from "@/app/components/EditPersonnelModal";
 import FullRecordModal from "@/app/components/FullRecordModal";
+import { QueryClient } from "@tanstack/react-query";
 
 interface BusBoxProps {
   vehicle_id: string;
@@ -87,15 +87,9 @@ const BusRecord: React.FC<BusBoxProps> = ({
 
         if (foundAssignment) {
           setAssignmentId(foundAssignment.vehicle_assignment_id);
-        } else {
-          const newAssignment = await createVehicleAssignment({
-            vehicle_id,
-            user_profile_ids: [assignedDriver, assignedPAO].filter(Boolean),
-          });
-          setAssignmentId(newAssignment.vehicle_assignment_id);
         }
       } catch (error) {
-        console.error("Error fetching or creating assignment ID:", error);
+        console.error("Error fetching assignment ID:", error);
         setAssignmentId(null);
       } finally {
         setLoading(false);
@@ -105,7 +99,7 @@ const BusRecord: React.FC<BusBoxProps> = ({
 
   useEffect(() => {
     fetchOrCreateAssignment();
-  }, [vehicle_id, assignedDriver, assignedPAO, assignmentId]); // Re-run fetch if vehicle_id, assignedDriver, or assignedPAO change
+  }, [vehicle_id, assignedDriver, assignedPAO, assignmentId]);
 
   const handleEditBus = () => {
     setIsEditBusModalOpen(true);
@@ -123,10 +117,22 @@ const BusRecord: React.FC<BusBoxProps> = ({
   };
 
   const handleUpdate = (updatedBus: any) => {
-    onUpdate(updatedBus); // Trigger parent update
-
-    // Optionally update the assignmentId directly if needed
-    setAssignmentId(updatedBus.assignmentId);
+    // Create a properly formatted update object that matches what the parent component expects
+    const formattedUpdate = {
+      vehicle_id,
+      plate_number: plateNumber,
+      or_id: ORNumber,
+      cr_id: CRNumber,
+      third_pli: thirdLBI,
+      ci,
+      // Include these fields to ensure the parent component has all necessary data
+      assignedDriver: updatedBus.updatedDriver || assignedDriver,
+      assignedPAO: updatedBus.updatedPAO || assignedPAO,
+      route
+    };
+    
+    // Pass the complete updated bus object to the parent
+    onUpdate(formattedUpdate);
 
     // Re-fetch assignment after update to reflect changes
     fetchOrCreateAssignment();
@@ -248,6 +254,11 @@ const BusRecord: React.FC<BusBoxProps> = ({
               updatedPAO,
               vehicle_id,
             });
+            
+            // Force a refresh of the vehicle assignments data
+            // This will ensure the parent component gets updated data
+            const queryClient = new QueryClient();
+            queryClient.invalidateQueries({ queryKey: ['vehicleAssignments'] });
           }}
         />
       )}

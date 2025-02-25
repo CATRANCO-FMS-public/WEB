@@ -59,7 +59,9 @@ const AssignBusPersonnelModal = ({
     fetchProfilesAndVehicles();
   }, []);
   
-  const handleDoneClick = async () => {
+  const handleDoneClick = async (e) => {
+    e.preventDefault();
+
     if (!selectedDriver || !selectedPAO || !selectedVehicle) {
       setError("Please select a driver, PAO, and vehicle.");
       return;
@@ -80,29 +82,31 @@ const AssignBusPersonnelModal = ({
       if (response.assignment) {
         console.log("Assignment created successfully:", response.assignment);
 
-        // Trigger onAssign callback to update parent state
-        if (onAssign) {
-          onAssign(response.assignment);
-        }
-
-        // Refresh parent data
+        // Close the modal first
+        onClose();
+        
+        // Then trigger callbacks
         if (refreshData) {
           refreshData();
         }
-
-        // Close the modal immediately after a successful assignment
-        onClose();
+        
+        if (onAssign) {
+          onAssign(response.assignment);
+        }
+      } else {
+        // Handle case where response doesn't contain assignment
+        console.error("Unexpected response format:", response);
+        setError("Unexpected response from server. Please try again.");
+        setLoading(false);
       }
     } catch (catchError) {
       console.error("Error creating vehicle assignment:", catchError);
 
       // If an error is received, log it and show a generic error message
-      // Do not show the error message if it is just closing after success
       setError(
         "An error occurred while creating the assignment. Please try again."
       );
-    } finally {
-      onClose();
+      setLoading(false); // Make sure to set loading to false on error
     }
   };
 

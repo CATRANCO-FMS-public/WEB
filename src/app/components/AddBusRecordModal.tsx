@@ -66,30 +66,20 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
       // Send the vehicle data to the backend
       await createVehicle(vehicleData);
 
-      // Refresh the parent data
-      if (refreshData) {
-        refreshData(); // Ensure the parent state is refreshed
+      // Call the onSubmit prop with the new bus data
+      if (onSubmit) {
+        onSubmit(vehicleData);
       }
 
-      setIsSubmitted(true); // Set submitted to true on successful submission
+      // Close the modal after submission instead of showing AssignBusPersonnelModal
+      onClose();
+      
+      // No need to set isSubmitted to true anymore
+      // The parent component will handle opening the AssignBusPersonnelModal
     } catch (error) {
       console.error("Error adding vehicle:", error);
     }
   };
-
-  if (isSubmitted) {
-    return (
-      <AssignBusPersonnelModal
-        onClose={onClose}
-        refreshData={refreshData}
-        onAssign={(newAssignment) => {
-          refreshData(); // Refresh or dynamically update assignments
-        }}
-        vehicleId={busNumber} // Assuming `busNumber` is correct here
-        preSelectedVehicle={busNumber} // Pass the `busNumber` as `preSelectedVehicle`
-      />
-    );
-  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -231,8 +221,8 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
             </label>
             <input
               type="date"
-              value={datePurchased.toISOString().slice(0, 10)} // Format as YYYY-MM-DD
-              onChange={(e) => setDatePurchased(new Date(e.target.value))}
+              value={thirdPartyValidity.toISOString().slice(0, 10)} // Format as YYYY-MM-DD
+              onChange={(e) => setThirdPartyValidity(new Date(e.target.value))}
               className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -274,8 +264,8 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
             </label>
             <input
               type="date"
-              value={thirdPartyValidity.toISOString().slice(0, 10)} // Format as YYYY-MM-DD
-              onChange={(e) => setThirdPartyValidity(new Date(e.target.value))}
+              value={datePurchased.toISOString().slice(0, 10)} // Format as YYYY-MM-DD
+              onChange={(e) => setDatePurchased(new Date(e.target.value))}
               className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
             />
           </div>
