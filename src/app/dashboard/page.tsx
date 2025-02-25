@@ -11,6 +11,7 @@ import { MapProvider } from "@/providers/MapProvider";
 import Pusher from "pusher-js";
 import Echo from "laravel-echo";
 import DispatchMap from "../components/DispatchMap";
+import { useQuery } from "@tanstack/react-query";
 
 interface BusData {
   number: string;
@@ -35,49 +36,29 @@ interface MaintenanceRecord {
 }
 
 const DashboardHeader: React.FC = () => {
-  const [busesInOperation, setBusesInOperation] = useState(0);
-  const [busesInMaintenance, setBusesInMaintenance] = useState(0);
-  const [currentEmployees, setCurrentEmployees] = useState(0);
   const [busData, setBusData] = useState<BusData[]>([]);
-  const [activeMaintenanceRecords, setActiveMaintenanceRecords] = useState<
-    MaintenanceRecord[]
-  >([]);
-  const [selectedBusDetails, setSelectedBusDetails] = useState<BusData | null>(
-    null
-  );
+  const [selectedBusDetails, setSelectedBusDetails] = useState<BusData | null>(null);
   const [pathData, setPathData] = useState<{ [busNumber: string]: { lat: number; lng: number }[] }>({});
 
-  // Fetch Static Data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const vehicles = await getAllVehicles();
-        setBusesInOperation(vehicles.length);
+  // Replace direct API calls with React Query
+  const { data: vehicles } = useQuery({
+    queryKey: ['vehicles'],
+    queryFn: getAllVehicles
+  });
 
-        const maintenance = await getAllActiveMaintenanceScheduling();
-        setBusesInMaintenance(maintenance.data.length);
+  const { data: maintenance } = useQuery({
+    queryKey: ['maintenance'],
+    queryFn: getAllActiveMaintenanceScheduling
+  });
 
-        const profiles = await getAllProfiles();
-        setCurrentEmployees(profiles.length);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
+  const { data: profiles } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: getAllProfiles
+  });
 
-    fetchData();
-  }, []);
-
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp * 1000);
-
-    const options: Intl.DateTimeFormatOptions = {
-      hour: "2-digit", // Corrected type
-      minute: "2-digit", // Corrected type
-      hour12: true, // Remains as boolean
-    };
-
-    return date.toLocaleString("en-US", options);
-  };
+  const busesInOperation = vehicles?.length ?? 0;
+  const busesInMaintenance = maintenance?.data?.length ?? 0;
+  const currentEmployees = profiles?.length ?? 0;
 
   // Real-Time Data Integration
   useEffect(() => {
@@ -160,6 +141,18 @@ const DashboardHeader: React.FC = () => {
       echo.leaveChannel("flespi-data");
     };
   }, []);
+
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+
+    const options: Intl.DateTimeFormatOptions = {
+      hour: "2-digit", // Corrected type
+      minute: "2-digit", // Corrected type
+      hour12: true, // Remains as boolean
+    };
+
+    return date.toLocaleString("en-US", options);
+  };
 
   return (
     <Layout>

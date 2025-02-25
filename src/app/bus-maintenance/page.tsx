@@ -8,6 +8,7 @@ import CompletionProofModal from "../components/CompletionProofModal"; // Compon
 import ViewProofModal from "../components/ViewProofModal"; // Component for viewing proof
 import Pagination from "../components/Pagination";
 import { FaSearch, FaPlus, FaHistory } from "react-icons/fa";
+import { useQuery } from "@tanstack/react-query";
 import {
   getAllActiveMaintenanceScheduling,
   getAllCompletedMaintenanceScheduling,
@@ -41,7 +42,6 @@ const MaintenanceManagement = () => {
   const [currentRecord, setCurrentRecord] = useState<MaintenanceRecord | null>(
     null
   ); // Fix here
-  const [records, setRecords] = useState<MaintenanceRecord[]>([]); // Specify record type
   const [searchTerm, setSearchTerm] = useState("");
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [historyData, setHistoryData] = useState([]); // Define the history data type as necessary
@@ -49,24 +49,20 @@ const MaintenanceManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 3;
 
-  const fetchRecords = useCallback(async () => {
-    try {
-      let response;
-      if (viewType === "active") {
-        response = await getAllActiveMaintenanceScheduling();
-      } else {
-        response = await getAllCompletedMaintenanceScheduling();
-      }
-      setRecords(Array.isArray(response.data) ? response.data : []); // Extract the `data` key
-    } catch (error) {
-      console.error("Error fetching records:", error);
-      setRecords([]); // Fallback to an empty array
+  // Fetch records using react-query
+  const fetchRecords = async () => {
+    if (viewType === "active") {
+      return (await getAllActiveMaintenanceScheduling()).data;
+    } else {
+      return (await getAllCompletedMaintenanceScheduling()).data;
     }
-  }, [viewType]);
+  };
 
-  useEffect(() => {
-    fetchRecords(); // Fetch records when viewType changes
-  }, [fetchRecords]);
+  const { data: records = [], refetch } = useQuery({
+    queryKey: ["maintenanceRecords", viewType],
+    queryFn: fetchRecords,
+    placeholderData: [], // Replace keepPreviousData with placeholderData
+  });
 
   // Filter records based on search term
   const filteredRecords = Array.isArray(records)
@@ -81,38 +77,16 @@ const MaintenanceManagement = () => {
   const handleReturnToActive = async (id: string | number) => {
     try {
       const formData = new FormData();
-
-      // Append proof file if available
       if (currentRecord?.maintenance_complete_proof instanceof File) {
         formData.append(
           "maintenance_complete_proof",
           currentRecord.maintenance_complete_proof
         );
       }
-
-      const maintenanceId = Number(id); // Convert to number here
-      if (isNaN(maintenanceId)) {
-        throw new Error("Invalid ID");
-      }
-
-      const updatedRecord = await toggleMaintenanceSchedulingStatus(
-        maintenanceId,
-        formData
-      );
-
-      setRecords((prev) =>
-        prev.map((record) =>
-          record.maintenance_scheduling_id === maintenanceId
-            ? {
-                ...record,
-                maintenance_status: updatedRecord.schedule.maintenance_status,
-              }
-            : record
-        )
-      );
-
-      setIsViewProofModalOpen(false); // Close the modal after successful update
-    } catch (error: unknown) {
+      await toggleMaintenanceSchedulingStatus(Number(id), formData);
+      refetch();
+      setIsViewProofModalOpen(false);
+    } catch (error) {
       if (error instanceof AxiosError) {
         console.error(
           "Error returning to active:",
@@ -149,13 +123,8 @@ const MaintenanceManagement = () => {
 
   const handleRemove = async (id: string | number) => {
     try {
-      const maintenanceId = Number(id); // Convert to number here
-      if (isNaN(maintenanceId)) {
-        throw new Error("Invalid ID");
-      }
-
-      await deleteMaintenanceScheduling(maintenanceId); // Use maintenanceId instead of id
-      fetchRecords();
+      await deleteMaintenanceScheduling(Number(id));
+      refetch();
     } catch (error) {
       console.error("Error deleting record:", error);
     }
@@ -163,21 +132,16 @@ const MaintenanceManagement = () => {
 
   const handleSave = async (id: string | number, data: MaintenanceRecord) => {
     try {
-      // Convert id to number if it's a string
       const maintenanceId = typeof id === "string" ? Number(id) : id;
-
-      // Check if the converted ID is valid
-      if (isNaN(maintenanceId)) {
-        throw new Error("Invalid ID");
-      }
+      if (isNaN(maintenanceId)) throw new Error("Invalid ID");
 
       if (maintenanceId) {
-        await updateMaintenanceScheduling(maintenanceId, data); // Use the valid maintenanceId
+        await updateMaintenanceScheduling(maintenanceId, data);
       } else {
         await createMaintenanceScheduling(data);
       }
 
-      fetchRecords();
+      refetch();
       setIsAddModalOpen(false);
       setIsEditModalOpen(false);
     } catch (error) {
@@ -185,34 +149,17 @@ const MaintenanceManagement = () => {
     }
   };
 
+
   const handleProofSubmit = async (
     id: string | number,
     proofData: FormData
   ) => {
     try {
-      const maintenanceId = Number(id); // Convert to number here
-      if (isNaN(maintenanceId)) {
-        throw new Error("Invalid ID");
-      }
-
       const updatedRecord = await toggleMaintenanceSchedulingStatus(
-        maintenanceId, // Use maintenanceId instead of id
+        Number(id),
         proofData
       );
-
-      setRecords((prev) =>
-        prev.map((record) =>
-          record.maintenance_scheduling_id === maintenanceId // Compare with maintenanceId
-            ? {
-                ...record,
-                maintenance_status: updatedRecord.schedule.maintenance_status,
-                maintenance_complete_proof:
-                  updatedRecord.schedule.maintenance_complete_proof,
-              }
-            : record
-        )
-      );
-
+      refetch();
       setIsProofModalOpen(false);
     } catch (error) {
       console.error("Error submitting proof:", error);

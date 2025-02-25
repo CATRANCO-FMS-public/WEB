@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import Header from "../components/Header";
 import Confirmpopup from "../components/Confirmpopup";
@@ -8,7 +9,6 @@ import FeedbackRecord from "../components/FeedbackRecord";
 import { fetchAllFuelLogs } from "../services/feedbackService";
 import Pagination from "../components/Pagination";
 
-// Define the type for the feedback record
 interface FeedbackRecord {
   feedback_logs_id: string;
   phone_number: string;
@@ -23,31 +23,13 @@ const FeedbackRecordDisplay = () => {
   const [itemsPerPage] = useState(4);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [deleteRecordId, setDeleteRecordId] = useState<string | null>(null);
-  const [feedbackRecords, setFeedbackRecords] = useState<FeedbackRecord[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchFeedbackLogs = async () => {
-      try {
-        setLoading(true);
-        const response = await fetchAllFuelLogs();
-        console.log("Fetched Feedback Logs:", response); // Log the full response
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["feedbackRecords"],
+    queryFn: fetchAllFuelLogs,
+  });
 
-        if (Array.isArray(response.data)) {
-          setFeedbackRecords(response.data); // Use response.data, which is the array
-        } else {
-          console.error("Unexpected response format:", response); // Just in case, but shouldn't happen
-        }
-      } catch (error) {
-        console.error("Error fetching feedback logs:", error);
-        alert("Failed to fetch feedback records. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFeedbackLogs();
-  }, []);
+  const feedbackRecords: FeedbackRecord[] = data?.data || [];
 
   const handleDelete = (recordId: string) => {
     setDeleteRecordId(recordId);
@@ -56,10 +38,11 @@ const FeedbackRecordDisplay = () => {
 
   const confirmDelete = () => {
     if (deleteRecordId) {
-      setFeedbackRecords((prevRecords) =>
-        prevRecords.filter(
-          (record) => record.feedback_logs_id !== deleteRecordId
-        )
+      feedbackRecords.splice(
+        feedbackRecords.findIndex(
+          (record) => record.feedback_logs_id === deleteRecordId
+        ),
+        1
       );
       setDeleteRecordId(null);
       setIsDeletePopupOpen(false);
@@ -71,14 +54,10 @@ const FeedbackRecordDisplay = () => {
     setIsDeletePopupOpen(false);
   };
 
-  const filteredRecords = Array.isArray(feedbackRecords)
-    ? feedbackRecords.filter((record) => {
-        return (
-          record.comments?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          record.phone_number?.includes(searchTerm)
-        );
-      })
-    : [];
+  const filteredRecords = feedbackRecords.filter((record) =>
+    record.comments?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.phone_number?.includes(searchTerm)
+  );
 
   const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
   const paginatedRecords = filteredRecords.slice(
@@ -99,14 +78,12 @@ const FeedbackRecordDisplay = () => {
             className="flex-1 px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
           />
         </div>
-        {loading ? (
-          <div className="text-center text-blue-500 mt-10">
-            Loading feedback...
-          </div>
+        {isLoading ? (
+          <div className="text-center text-blue-500 mt-10">Loading feedback...</div>
+        ) : isError ? (
+          <div className="text-center text-red-500 mt-10">Error loading feedback records.</div>
         ) : feedbackRecords.length === 0 ? (
-          <div className="text-center text-gray-500 mt-10">
-            No feedback records found.
-          </div>
+          <div className="text-center text-gray-500 mt-10">No feedback records found.</div>
         ) : (
           <div className="records flex flex-col h-full">
             <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 ml-5">

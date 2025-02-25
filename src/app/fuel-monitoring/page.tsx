@@ -14,43 +14,44 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { groupByTimeInterval } from "../helper/fuel-helper";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
 const FuelMonitoring = () => {
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [timeInterval, setTimeInterval] = useState("daily");
   const [selectedBus, setSelectedBus] = useState(null);
-  const [fuelLogs, setFuelLogs] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
-  const [maintenanceSchedules, setMaintenanceSchedules] = useState([]);
   const [error, setError] = useState(null);
 
   const itemsPerPage = 3; // Number of buses to display per page
 
-  // Fetch data: vehicles, fuel logs, and maintenance schedules
-  const loadData = async () => {
-    try {
-      const [logs, vehicleData, maintenanceData] = await Promise.all([
-        fetchAllFuelLogs(),
-        getAllVehicles(),
-        getAllMaintenanceScheduling(),
-      ]);
-      setFuelLogs(logs);
-      setVehicles(vehicleData);
-      setMaintenanceSchedules(maintenanceData);
-      if (vehicleData.length > 0) {
-        setSelectedBus(vehicleData[0].vehicle_id); // Default to the first vehicle
-      }
-    } catch (err) {
-      console.error("Failed to load data:", err);
-      setError("Failed to load data. Please try again.");
-    }
-  };
+  const {
+    data: fuelLogs = [],
+    error: fuelError,
+  } = useQuery({ queryKey: ["fuelLogs"], queryFn: fetchAllFuelLogs });
 
-  // Fetch data when the component mounts
-  useEffect(() => {
-    loadData();
-  }, []);
+  const {
+    data: vehicles = [],
+    error: vehicleError,
+  } = useQuery({ queryKey: ["vehicles"], queryFn: getAllVehicles });
+
+  const {
+    data: maintenanceSchedules = [],
+    error: maintenanceError,
+  } = useQuery({
+    queryKey: ["maintenanceSchedules"],
+    queryFn: getAllMaintenanceScheduling,
+  });
+
+  React.useEffect(() => {
+    if (vehicles.length > 0) {
+      setSelectedBus(vehicles[0].vehicle_id);
+    }
+  }, [vehicles]);
+
+  if (fuelError || vehicleError || maintenanceError) {
+    return <div className="text-red-500">Failed to load data. Please try again.</div>;
+  }
 
   // Generate chart data based on time interval and selected bus
   const chartData = {

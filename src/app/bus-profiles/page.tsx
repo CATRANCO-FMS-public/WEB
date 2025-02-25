@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import Header from "../components/Header";
 import Confirmpopup from "../components/Confirmpopup";
@@ -16,6 +17,7 @@ import {
 import HistoryModalForBus from "../components/HistoryModalForBus";
 
 const BusRecordDisplay = () => {
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
@@ -28,7 +30,6 @@ const BusRecordDisplay = () => {
   const [isAssignPersonnelModalOpen, setIsAssignPersonnelModalOpen] =
     useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [vehicleAssignments, setVehicleAssignments] = useState([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [busHistory, setBusHistory] = useState([]);
@@ -48,22 +49,67 @@ const BusRecordDisplay = () => {
     date_purchased: Date | string;
   }
 
-  const [busRecords, setBusRecords] = useState<BusRecordType[]>([]);
+  const { data: busRecords, isError: isVehiclesError, error: vehiclesError, isLoading: isVehiclesLoading } = useQuery({
+    queryKey: ['vehicles'],
+    queryFn: getAllVehicles,
+    retry: 3,
+    refetchOnWindowFocus: false,
+    initialData: []
+  });
 
-  const fetchData = async () => {
-    try {
-      const vehicles = await getAllVehicles();
-      const assignments = await getAllVehicleAssignments();
-      setBusRecords(vehicles);
-      setVehicleAssignments(assignments);
-    } catch (error) {
-      console.error("Error fetching data:", error);
+  const { data: vehicleAssignments, isError: isAssignmentsError, error: assignmentsError, isLoading: isAssignmentsLoading } = useQuery({
+    queryKey: ['vehicleAssignments'],
+    queryFn: getAllVehicleAssignments,
+    retry: 3,
+    refetchOnWindowFocus: false,
+    initialData: []
+  });
+
+  const deleteVehicleMutation = useMutation({
+    mutationFn: deleteVehicle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+    },
+    onError: (error) => {
+      console.error('Delete vehicle error:', error);
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: deleteVehicleAssignment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vehicleAssignments'] });
+    },
+    onError: (error) => {
+      console.error('Delete assignment error:', error);
+    }
+  });
+
+  const safeVehicleAssignments = vehicleAssignments || [];
+  const safeBusRecords = busRecords || [];
+
+  if (isVehiclesError || isAssignmentsError) {
+    return (
+      <Layout>
+        <div className="p-4 text-red-600">
+          Error loading data. Please try again later.
+          {(vehiclesError || assignmentsError) && (
+            <pre className="mt-2 text-sm">
+              {JSON.stringify(vehiclesError || assignmentsError, null, 2)}
+            </pre>
+          )}
+        </div>
+      </Layout>
+    );
+  }
+
+  if (isVehiclesLoading || isAssignmentsLoading) {
+    return (
+      <Layout>
+        <div className="p-4">Loading...</div>
+      </Layout>
+    );
+  }
 
   const openHistoryModal = () => {
     const history = busRecords.map((record) => {
@@ -84,56 +130,21 @@ const BusRecordDisplay = () => {
 
   const handleDelete = (recordId, assignmentId) => {
     setDeleteRecordId(recordId);
-    setDeleteAssignmentId(assignmentId); // Store the assignmentId
-    setIsDeletePopupOpen(true); // Open the confirmation popup
+    setDeleteAssignmentId(assignmentId);
+    setIsDeletePopupOpen(true);
   };
 
   const confirmDelete = async () => {
     if (deleteRecordId && deleteAssignmentId) {
       try {
-        // Optimistically remove the record from the UI
-        setBusRecords((prev) =>
-          prev.filter((record) => record.vehicle_id !== deleteRecordId)
-        );
-
-        // Call the delete APIs for both vehicle and assignment
-        const [vehicleResponse, assignmentResponse] = await Promise.all([
-          deleteVehicle(deleteRecordId),
-          deleteVehicleAssignment(deleteAssignmentId),
+        await Promise.all([
+          deleteVehicleMutation.mutateAsync(deleteRecordId),
+          deleteAssignmentMutation.mutateAsync(deleteAssignmentId)
         ]);
-
-        // Log both responses to inspect them
-        console.log("Vehicle Response:", vehicleResponse);
-        console.log("Assignment Response:", assignmentResponse);
-
-        // Check the message content for success
-        if (
-          vehicleResponse?.message === "Vehicle Deleted Successfully" &&
-          assignmentResponse?.message ===
-            "Vehicle Assignment Deleted Successfully"
-        ) {
-          console.log("Vehicle and assignment deleted successfully.");
-        } else {
-          console.log(
-            "Vehicle or assignment deletion failed.",
-            vehicleResponse,
-            assignmentResponse
-          );
-          alert("An error occurred while deleting the vehicle or assignment.");
-          await fetchData(); // Re-fetch data if necessary
-        }
       } catch (error) {
-        // Log the error details
         console.error("Error deleting vehicle and/or assignment:", error);
-
-        if (error.response) {
-          console.log("Error response data:", error.response.data);
-        }
-
         alert("An error occurred while deleting the vehicle or assignment.");
-        await fetchData();
       } finally {
-        // Close the confirmation popup
         setDeleteRecordId(null);
         setDeleteAssignmentId(null);
         setIsDeletePopupOpen(false);
@@ -143,81 +154,63 @@ const BusRecordDisplay = () => {
 
   const cancelDelete = () => {
     setDeleteRecordId(null);
-    setIsDeletePopupOpen(false); // This closes the popup
+    setIsDeletePopupOpen(false);
   };
 
-  // Handle adding a new bus record
   const handleAddNewBus = (newBus: any) => {
-    setBusRecords((prevRecords) => [...prevRecords, newBus]);
+    queryClient.setQueryData(['vehicles'], (old: any) => [...old, newBus]);
     setSelectedVehicleId(newBus.vehicle_id);
     setIsAssignPersonnelModalOpen(true);
-    fetchData();
+    queryClient.invalidateQueries({ queryKey: ['vehicles'] });
   };
 
   const handleEditBus = (updatedBus) => {
-    setBusRecords((prevRecords) =>
-      prevRecords.map((record) =>
+    queryClient.setQueryData(['vehicles'], (old: any[]) =>
+      old.map((record) =>
         record.vehicle_id === updatedBus.vehicle_id ? updatedBus : record
       )
     );
     setIsEditModalOpen(false);
-    fetchData();
+    queryClient.invalidateQueries({ queryKey: ['vehicles'] });
   };
 
-  // Callback for updating vehicle assignments
   const handleAddVehicleAssignment = (newAssignment) => {
-    // Log the new assignment being added
-    console.log("New Assignment:", newAssignment);
-
-    // Update the state with the new assignment
-    setVehicleAssignments((prevAssignments) => {
-      const updatedAssignments = [...prevAssignments, newAssignment];
-
-      // Log the updated list after adding the new assignment
-      console.log("Updated Assignments:", updatedAssignments);
-
-      return updatedAssignments;
-    });
+    queryClient.setQueryData(['vehicleAssignments'], (old: any) => [...old, newAssignment]);
+    queryClient.invalidateQueries({ queryKey: ['vehicleAssignments'] });
   };
 
-  // Filter bus records by search term
-  const filteredRecords = busRecords.filter((record) =>
-    record.plate_number?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredRecords = safeBusRecords.filter((record) =>
+    record?.plate_number?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) ?? false
   );
 
-  // Get the assigned profiles for a vehicle
   const getAssignedProfiles = (vehicleId) => {
-    const assignment = vehicleAssignments.find(
-      (assignment) => assignment.vehicle_id === vehicleId
+    const assignment = safeVehicleAssignments.find(
+      (assignment) => assignment?.vehicle_id === vehicleId
     );
 
-    if (!assignment) {
+    if (!assignment?.user_profiles) {
       return { driver: "N/A", conductor: "N/A" };
     }
 
     const driver = assignment.user_profiles.find(
-      (profile) => profile.position === "driver"
+      (profile) => profile?.position === "driver"
     );
     const conductor = assignment.user_profiles.find(
-      (profile) => profile.position === "passenger_assistant_officer"
+      (profile) => profile?.position === "passenger_assistant_officer"
     );
 
     return {
       driver: driver ? `${driver.first_name} ${driver.last_name}` : "N/A",
-      conductor: conductor
-        ? `${conductor.first_name} ${conductor.last_name}`
-        : "N/A",
+      conductor: conductor ? `${conductor.first_name} ${conductor.last_name}` : "N/A",
     };
   };
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
   const paginatedRecords = filteredRecords.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Reset pagination when search term changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
@@ -279,8 +272,8 @@ const BusRecordDisplay = () => {
                 assignedDriver={driver}
                 assignedPAO={conductor}
                 route={record.route || "Not Assigned"}
-                assignmentId={assignmentId} // Add this line
-                onDelete={() => handleDelete(record.vehicle_id, assignmentId)} // Update this line
+                assignmentId={assignmentId}
+                onDelete={() => handleDelete(record.vehicle_id, assignmentId)}
                 onUpdate={handleEditBus}
               />
             );
@@ -299,14 +292,14 @@ const BusRecordDisplay = () => {
           isOpen={isDeletePopupOpen}
           onClose={cancelDelete}
           onConfirm={confirmDelete}
-          title="Delete Profile" // Pass title here
+          title="Delete Profile"
           message="Are you sure you want to delete this profile?"
         />
       )}
       {isAddModalOpen && (
         <AddBusRecordModal
           onClose={() => setIsAddModalOpen(false)}
-          refreshData={fetchData}
+          refreshData={() => queryClient.invalidateQueries({ queryKey: ['vehicles'] })}
           onSubmit={(newBus) => {
             handleAddNewBus(newBus);
           }}
@@ -315,7 +308,7 @@ const BusRecordDisplay = () => {
       {isAssignPersonnelModalOpen && (
         <AssignBusPersonnelModal
           onClose={() => setIsAssignPersonnelModalOpen(false)}
-          refreshData={fetchData}
+          refreshData={() => queryClient.invalidateQueries({ queryKey: ['vehicles'] })}
           onAssign={handleAddVehicleAssignment}
           vehicleId={selectedVehicleId}
           preSelectedVehicle={selectedVehicleId}

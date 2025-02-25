@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Layout from "../components/Layout";
 import Header from "../components/Header";
 import Confirmpopup from "../components/Confirmpopup";
@@ -13,6 +13,7 @@ import {
   deleteTrackerVehicleMapping,
 } from "@/app/services/trackerService";
 import EditDeviceModal from "../components/EditDeviceModal";
+import { useQuery } from "@tanstack/react-query";
 
 // Define the device type
 interface Device {
@@ -25,7 +26,6 @@ interface Device {
 
 const DeviceManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [devices, setDevices] = useState<Device[]>([]); // Specify the device type
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4; // Limit to 4 cards per page
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
@@ -34,18 +34,11 @@ const DeviceManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchTrackerMappings = async () => {
-      try {
-        const mappings = await getAllTrackerVehicleMappings();
-        setDevices(mappings);
-      } catch (error) {
-        console.error("Error fetching tracker-to-vehicle mappings:", error);
-      }
-    };
-
-    fetchTrackerMappings();
-  }, []);
+  // Fetch devices using useQuery
+  const { data: devices = [], refetch } = useQuery({
+    queryKey: ["devices"],
+    queryFn: getAllTrackerVehicleMappings,
+  });
 
   const filteredDevices = devices.filter((device) =>
     device.device_name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -63,9 +56,9 @@ const DeviceManagement = () => {
     }
   };
 
-  const handleAddNewDevice = (newDevice: Device) => {
-    setDevices((prevDevices) => [...prevDevices, newDevice]);
+  const handleAddNewDevice = () => {
     setIsAddModalOpen(false);
+    refetch();
   };
 
   const handleDelete = (recordId: number) => {
@@ -76,13 +69,10 @@ const DeviceManagement = () => {
   const confirmDelete = async () => {
     if (deleteRecordId !== null) {
       try {
-        // Convert deleteRecordId to string before passing it to deleteTrackerVehicleMapping
         await deleteTrackerVehicleMapping(deleteRecordId.toString());
-        setDevices((prevDevices) =>
-          prevDevices.filter((device) => device.id !== deleteRecordId)
-        );
         setDeleteRecordId(null);
         setIsDeletePopupOpen(false);
+        refetch();
       } catch (error) {
         console.error("Error deleting tracker-to-vehicle mapping:", error);
       }
@@ -99,24 +89,12 @@ const DeviceManagement = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = (updatedDevice: Device) => {
-    setDevices((prevDevices) =>
-      prevDevices.map((device) =>
-        device.id === updatedDevice.id
-          ? { ...device, ...updatedDevice }
-          : device
-      )
-    );
-    setIsEditModalOpen(false);
-  };
-
   return (
     <Layout>
       <section className="flex flex-row h-screen bg-white">
         <div className="w-full flex flex-col bg-slate-200">
           <Header title="Device Management" />
           <div className="content flex flex-col flex-1 p-6 -mt-2">
-            {/* Search & Add New */}
             <div className="options flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-[590px] -ml-1 mb-6">
               <input
                 type="text"
@@ -133,16 +111,11 @@ const DeviceManagement = () => {
               </button>
             </div>
 
-            {/* Devices Grid */}
             <div className="records grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 ">
               {paginatedDevices.map((device) => (
                 <DeviceRecord
                   key={device.id}
-                  deviceId={
-                    typeof device.id === "string"
-                      ? Number(device.id)
-                      : device.id
-                  } // Ensure id is a number
+                  deviceId={typeof device.id === "string" ? Number(device.id) : device.id}
                   deviceName={device.device_name}
                   serialNumber={device.tracker_ident}
                   busNumber={device.vehicle_id || "Unassigned"}
@@ -153,7 +126,6 @@ const DeviceManagement = () => {
               ))}
             </div>
 
-            {/* Pagination */}
             <div className="mt-6">
               <Pagination
                 currentPage={currentPage}
@@ -164,7 +136,6 @@ const DeviceManagement = () => {
           </div>
         </div>
 
-        {/* Modals */}
         <AddDeviceModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
@@ -174,7 +145,7 @@ const DeviceManagement = () => {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           deviceId={selectedDeviceId}
-          onSave={handleSaveEdit}
+          onSave={() => refetch()}
         />
         <Confirmpopup
           isOpen={isDeletePopupOpen}

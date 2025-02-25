@@ -21,6 +21,7 @@ import { MapProvider } from "@/providers/MapProvider";
 import AlleyModal from "../components/AlleyModal";
 import DispatchModal from "../components/DispatchModal";
 import StaticLocationsData from "../components/StaticLocationsData";
+import { useQuery } from '@tanstack/react-query';
 
 interface VehicleAssignmentData {
   number: string;
@@ -64,14 +65,13 @@ const DispatchMonitoring: React.FC = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
 
-  const fetchVehicleAssignments = async () => {
-    try {
+  const { data: vehicleAssignmentsData, isLoading, refetch } = useQuery({
+    queryKey: ['vehicleAssignments'],
+    queryFn: async () => {
       console.log("Fetching vehicle assignments...");
 
       // Fetch all vehicle assignments
       const vehicleAssignments = await getAllVehicleAssignments();
-
-      // Fetch "on alley" or "on road" status and their associated dispatch_logs_id
       const onAlley = await getAllOnAlley();
       const onRoad = await getAllOnRoad();
 
@@ -94,12 +94,10 @@ const DispatchMonitoring: React.FC = () => {
         let status = "idle";
         let dispatch_logs_id = null;
 
-        // Check if the vehicle is on alley
         if (alleyDispatchLogsMap.has(vehicle.vehicle_id)) {
           status = "on alley";
           dispatch_logs_id = alleyDispatchLogsMap.get(vehicle.vehicle_id);
         }
-        // Check if the vehicle is on road
         else if (roadDispatchLogsMap.has(vehicle.vehicle_id)) {
           status = "on road";
           dispatch_logs_id = roadDispatchLogsMap.get(vehicle.vehicle_id);
@@ -109,24 +107,27 @@ const DispatchMonitoring: React.FC = () => {
           number: vehicle.vehicle_id,
           status: status,
           route: "",
-          dispatch_logs_id: dispatch_logs_id, // Set the correct dispatch_logs_id
+          dispatch_logs_id: dispatch_logs_id,
           name: vehicle.name || "Unnamed",
           vehicle_assignment_id: vehicle.vehicle_assignment_id,
         };
       });
 
-      // Update refs and state
-      vehicleAssignmentDataRef.current = mappedVehicles;
-      setVehicleAssignmentData(mappedVehicles);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching vehicle assignments:", error);
-    }
-  };
+      return mappedVehicles;
+    },
+  });
 
   useEffect(() => {
-    fetchVehicleAssignments();
-  }, []);
+    if (vehicleAssignmentsData) {
+      vehicleAssignmentDataRef.current = vehicleAssignmentsData;
+      setVehicleAssignmentData(vehicleAssignmentsData);
+      setLoading(false);
+    }
+  }, [vehicleAssignmentsData]);
+
+  useEffect(() => {
+    setLoading(isLoading);
+  }, [isLoading]);
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
@@ -233,7 +234,7 @@ const DispatchMonitoring: React.FC = () => {
         ) {
           endDispatch(dispatch_log.dispatch_logs_id).then(() => {
             console.log(`Dispatch ended for vehicle: ${vehicle_id}`);
-            fetchVehicleAssignments();
+            refetch();
             setPathData((prevPaths) => {
               const updatedPaths = { ...prevPaths };
               delete updatedPaths[vehicle_id];
@@ -247,7 +248,7 @@ const DispatchMonitoring: React.FC = () => {
       echo.leaveChannel("flespi-data");
       console.log("Unsubscribed from flespi-data channel");
     };
-  }, []);
+  }, [refetch]);
 
   const getButtonColor = (status: string, dispatch_logs_id: string | null) => {
     if (!dispatch_logs_id) {
@@ -300,7 +301,7 @@ const DispatchMonitoring: React.FC = () => {
       `Vehicle Assignment ID: ${modalVehicleData.vehicle_assignment_id}`
     );
 
-    fetchVehicleAssignments();
+    refetch();
 
     // Example of dispatch service logic
     startAlley({
@@ -348,7 +349,7 @@ const DispatchMonitoring: React.FC = () => {
       };
       await startDispatch(data);
 
-      fetchVehicleAssignments();
+      refetch();
 
       console.log("Dispatch started successfully!");
       // Optionally close the modal here
@@ -383,7 +384,7 @@ const DispatchMonitoring: React.FC = () => {
         );
       });
 
-    fetchVehicleAssignments();
+    refetch();
   };
 
   const handleCancelDelete = () => {

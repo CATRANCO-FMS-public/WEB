@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import Header from "../components/Header";
 import Confirmpopup from "../components/Confirmpopup";
@@ -64,11 +65,11 @@ const calculateAge = (birthday) => {
 };
 
 const Personnel = () => {
+  const queryClient = useQueryClient();
   const [activeButton, setActiveButton] = useState("drivers");
   const [searchTerm, setSearchTerm] = useState("");
-  const [profiles, setProfiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3; // Number of items per page
+  const itemsPerPage = 3;
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [deleteRecordId, setDeleteRecordId] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -79,19 +80,24 @@ const Personnel = () => {
   const [isViewBioDataModalOpen, setIsViewBioDataModalOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
 
-  // Fetch profiles on component mount
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const data = await getAllProfiles();
-        setProfiles(data);
-      } catch (error) {
-        console.error("Error fetching profiles:", error);
-      }
-    };
+  // Replace useEffect with useQuery
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: getAllProfiles
+  });
 
-    fetchProfiles();
-  }, []);
+  // Add delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: deleteProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      setDeleteRecordId(null);
+      setIsDeletePopupOpen(false);
+    },
+    onError: (error) => {
+      console.error("Error deleting profile:", error);
+    }
+  });
 
   const openHistoryModal = () => {
     const history = extractHistoryFromProfiles(profiles);
@@ -119,10 +125,40 @@ const Personnel = () => {
     currentPage * itemsPerPage
   );
 
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+  // Update handlers to use mutations
+  const confirmDelete = () => {
+    if (deleteRecordId) {
+      deleteMutation.mutate(deleteRecordId);
     }
+  };
+
+  const handleAddNew = async (newProfile) => {
+    try {
+      const formattedProfile = {
+        profile: newProfile,
+      };
+      // Optimistically update the cache
+      queryClient.setQueryData(['profiles'], (old: any) => [...old, formattedProfile]);
+      setIsAddModalOpen(false);
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+    } catch (error) {
+      console.error("Error adding new personnel:", error);
+    }
+  };
+
+  const handleSaveEdit = (updatedProfile) => {
+    // Optimistically update the cache
+    queryClient.setQueryData(['profiles'], (old: any) =>
+      old.map((profile) =>
+        profile.profile.user_profile_id === updatedProfile.user_profile_id
+          ? { ...profile, profile: updatedProfile }
+          : profile
+      )
+    );
+    setIsEditModalOpen(false);
+    // Invalidate and refetch
+    queryClient.invalidateQueries({ queryKey: ['profiles'] });
   };
 
   const handleViewBioData = (profileId) => {
@@ -142,49 +178,10 @@ const Personnel = () => {
     setDeleteRecordId(null);
     setIsDeletePopupOpen(false); // Close the popup when Cancel is clicked
   };
-  const confirmDelete = async () => {
-    if (deleteRecordId) {
-      try {
-        await deleteProfile(deleteRecordId);
-        setProfiles((prevProfiles) =>
-          prevProfiles.filter(
-            (profile) => profile.profile.user_profile_id !== deleteRecordId
-          )
-        );
-        setDeleteRecordId(null);
-        setIsDeletePopupOpen(false);
-      } catch (error) {
-        console.error("Error deleting profile:", error);
-      }
-    }
-  };
-
-  const handleAddNew = async (newProfile) => {
-    try {
-      const formattedProfile = {
-        profile: newProfile,
-      };
-      setProfiles((prevProfiles) => [...prevProfiles, formattedProfile]);
-      setIsAddModalOpen(false);
-    } catch (error) {
-      console.error("Error adding new personnel:", error);
-    }
-  };
 
   const handleEdit = (profileId) => {
     setSelectedProfileId(profileId);
     setIsEditModalOpen(true);
-  };
-
-  const handleSaveEdit = (updatedProfile) => {
-    setProfiles((prevProfiles) =>
-      prevProfiles.map((profile) =>
-        profile.profile.user_profile_id === updatedProfile.user_profile_id
-          ? { ...profile, profile: updatedProfile }
-          : profile
-      )
-    );
-    setIsEditModalOpen(false);
   };
 
   return (
@@ -245,7 +242,7 @@ const Personnel = () => {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={handlePageChange}
+              onPageChange={setCurrentPage}
             />
             </div>
           </div>

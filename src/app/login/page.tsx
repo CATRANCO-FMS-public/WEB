@@ -27,6 +27,13 @@ export default function AuthPage() {
   const [loginSuccess, setLoginSuccess] = useState(false); // State for successful login notification
   const router = useRouter();
 
+  React.useEffect(() => {
+    const authToken = localStorage.getItem("authToken");
+    if (authToken) {
+      router.replace("/dashboard"); // Redirect immediately if token exists
+    }
+  }, []);
+
   // Handle form field changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
