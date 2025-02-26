@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaBus } from "react-icons/fa";
 import { updateFuelLog } from "@/app/services/fuellogsService";
+import { toast } from "react-toastify";
 
 const FuelEditModal = ({
   selectedBus,
@@ -12,7 +13,7 @@ const FuelEditModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
-    distanceTraveled: "",
+    odometerKM: "",
     fuelType: "",
     fuelPrice: "",
     fuel_liters_quantity: "",
@@ -26,7 +27,7 @@ const FuelEditModal = ({
       if (selectedFuelLog.fuel_logs_id) {
         setFormData({
           date: selectedFuelLog.purchase_date?.split(" ")[0] || "",
-          distanceTraveled: selectedFuelLog.odometer_km || "",
+          odometerKM: selectedFuelLog.odometer_km || "",
           fuelType: selectedFuelLog.fuel_type || "",
           fuelPrice: selectedFuelLog.fuel_price?.replace(/[^0-9.]/g, "") || "",
           fuel_liters_quantity: selectedFuelLog.fuel_liters_quantity || "",
@@ -75,7 +76,7 @@ const FuelEditModal = ({
       setIsSubmitting(true);
       const formDataToSubmit = new FormData();
       formDataToSubmit.append("purchase_date", formData.date);
-      formDataToSubmit.append("odometer_km", formData.distanceTraveled);
+      formDataToSubmit.append("odometer_km", formData.odometerKM);
       formDataToSubmit.append(
         "fuel_liters_quantity",
         formData.fuel_liters_quantity
@@ -108,7 +109,7 @@ const FuelEditModal = ({
         onClose(); // Close the modal
       } catch (error) {
         console.error("Failed to update fuel log:", error);
-        alert(
+        toast.error(
           error?.response?.data?.message ||
             "An error occurred while updating the fuel log. Please try again."
         );
@@ -139,12 +140,12 @@ const FuelEditModal = ({
                 required
               />
               <label className="block font-medium mt-4">
-                Distance Traveled (KM)
+                Odometer (KM)
               </label>
               <input
                 type="number"
-                name="distanceTraveled"
-                value={formData.distanceTraveled}
+                name="odometerKM"
+                value={formData.odometerKM}
                 onChange={handleChange}
                 className="w-full border border-gray-300 p-2 rounded"
                 required
@@ -218,19 +219,19 @@ const FuelEditModal = ({
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-5 py-2 bg-gray-500 text-white rounded"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
               className="px-5 py-2 bg-blue-500 text-white rounded"
             >
               {isSubmitting ? "Updating..." : "Update"}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="px-5 py-2 bg-red-500 text-white rounded"
+            >
+              Cancel
             </button>
           </div>
         </form>

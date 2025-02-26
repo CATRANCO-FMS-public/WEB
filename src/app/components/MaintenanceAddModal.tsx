@@ -3,11 +3,9 @@ import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { getAllVehicles } from "../services/vehicleService";
-import { getNextMaintenanceNumber } from "../services/maintenanceService";
 
 const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
   const [vehicles, setVehicles] = useState([]);
-  const [maintenanceNumber, setMaintenanceNumber] = useState(""); // Initially empty
   const [vehicleId, setVehicleId] = useState("");
   const [maintenanceCost, setMaintenanceCost] = useState("");
   const [maintenanceDate, setMaintenanceDate] = useState(new Date());
@@ -33,8 +31,6 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
           const vehicleData = await getAllVehicles();
           setVehicles(vehicleData);
 
-          const nextNumber = await getNextMaintenanceNumber(); // Fetch the next available number
-          setMaintenanceNumber(nextNumber); // Set the fetched number
         } catch (error) {
           console.error("Error fetching data:", error);
         }
@@ -73,7 +69,6 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
       maintenanceType === "others" ? otherMaintenanceType : maintenanceType;
 
     const newRecord = {
-      maintenance_number: maintenanceNumber,
       vehicle_id: vehicleId || "N/A",
       maintenance_cost: maintenanceCost || "0",
       maintenance_date: formattedDate,
@@ -93,27 +88,14 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-[800px]">
         <h2 className="text-lg font-bold mb-4">Add New Maintenance Record</h2>
+        
         <div className="form grid grid-cols-2 gap-6">
-          <div className="left space-y-5">
-            <div className="leftcontainer"></div>
-            <div className="col-span-1 ">
-              <label
-                htmlFor="maintenanceNumber"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Maintenance #
-              </label>
-              <div
-                id="maintenanceNumber"
-                className="border border-gray-300 p-3 rounded-md w-full mt-1 bg-gray-100 text-gray-700"
-              >
-                {maintenanceNumber || "Loading..."}
-              </div>
-            </div>
+          {/* Vehicle Info Column */}
+          <div className="space-y-5">
             <div className="col-span-1">
               <label
                 htmlFor="vehicleId"
-                className="block text-sm font-medium  text-gray-700"
+                className="block text-sm font-medium text-gray-700"
               >
                 Vehicle
               </label>
@@ -132,81 +114,6 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
               </select>
             </div>
 
-            <div className="col-span-1">
-              <label
-                htmlFor="maintenanceType"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Maintenance Type
-              </label>
-              <select
-                id="maintenanceType"
-                className="border border-gray-300 p-3 rounded-md w-full mt-1"
-                value={maintenanceType}
-                onChange={handleMaintenanceTypeChange} // Updated handler
-              >
-                <option value="">Select a maintenance type</option>
-                {maintenanceTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type
-                      .replace(/_/g, " ")
-                      .replace(/\b\w/g, (c) => c.toUpperCase())}
-                  </option>
-                ))}
-                <option value="others">Others (Specify Below)</option>
-              </select>
-            </div>
-
-            {maintenanceType === "others" && (
-              <div className="col-span-2">
-                <label
-                  htmlFor="otherMaintenanceType"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Specify Other Concern
-                </label>
-                <input
-                  id="otherMaintenanceType"
-                  placeholder="Describe the maintenance type"
-                  value={otherMaintenanceType} // Use new state
-                  onChange={(e) => setOtherMaintenanceType(e.target.value)} // Update new state
-                  className="border border-gray-300 p-3 rounded-md mt-1 w-full"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="right space-y-5">
-            <div className="col-span-1 mt-4">
-              <label
-                htmlFor="mechanicCompany"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Mechanic Company
-              </label>
-              <input
-                id="mechanicCompany"
-                placeholder="Mechanic Company"
-                value={mechanicCompany}
-                onChange={(e) => setMechanicCompany(e.target.value)}
-                className="border border-gray-300 p-3 rounded-md w-full mt-1"
-              />
-            </div>
-            <div className="col-span-1">
-              <label
-                htmlFor="mechanicCompanyAddress"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Mechanic Company Address
-              </label>
-              <input
-                id="mechanicCompanyAddress"
-                placeholder="Mechanic Company Address"
-                value={mechanicCompanyAddress}
-                onChange={(e) => setMechanicCompanyAddress(e.target.value)}
-                className="border border-gray-300 p-3 rounded-md w-full mt-1"
-              />
-            </div>
             <div className="col-span-1">
               <label
                 htmlFor="maintenanceDate"
@@ -239,14 +146,87 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
               />
             </div>
           </div>
+
+          {/* Maintenance Info Column */}
+          <div className="space-y-5">
+            <div className="col-span-1">
+              <label
+                htmlFor="maintenanceType"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Maintenance Type
+              </label>
+              <select
+                id="maintenanceType"
+                className="border border-gray-300 p-3 rounded-md w-full mt-1"
+                value={maintenanceType}
+                onChange={handleMaintenanceTypeChange}
+              >
+                <option value="">Select a maintenance type</option>
+                {maintenanceTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type
+                      .replace(/_/g, " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </option>
+                ))}
+                <option value="others">Others (Specify Below)</option>
+              </select>
+            </div>
+
+            {maintenanceType === "others" && (
+              <div className="col-span-1">
+                <label
+                  htmlFor="otherMaintenanceType"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Specify Other Concern
+                </label>
+                <input
+                  id="otherMaintenanceType"
+                  placeholder="Describe the maintenance type"
+                  value={otherMaintenanceType}
+                  onChange={(e) => setOtherMaintenanceType(e.target.value)}
+                  className="border border-gray-300 p-3 rounded-md mt-1 w-full"
+                />
+              </div>
+            )}
+
+            <div className="col-span-1">
+              <label
+                htmlFor="mechanicCompany"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Mechanic Company
+              </label>
+              <input
+                id="mechanicCompany"
+                placeholder="Mechanic Company"
+                value={mechanicCompany}
+                onChange={(e) => setMechanicCompany(e.target.value)}
+                className="border border-gray-300 p-3 rounded-md w-full mt-1"
+              />
+            </div>
+            
+            <div className="col-span-1">
+              <label
+                htmlFor="mechanicCompanyAddress"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Mechanic Company Address
+              </label>
+              <input
+                id="mechanicCompanyAddress"
+                placeholder="Mechanic Company Address"
+                value={mechanicCompanyAddress}
+                onChange={(e) => setMechanicCompanyAddress(e.target.value)}
+                className="border border-gray-300 p-3 rounded-md w-full mt-1"
+              />
+            </div>
+          </div>
         </div>
+        
         <div className="flex justify-end space-x-4 mt-4">
-          <button
-            className="px-6 py-3 border border-gray-500 text-gray-500 rounded-md bg-transparent"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
           <button
             className={`px-6 py-3 ${
               maintenanceType &&
@@ -265,6 +245,12 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
             }
           >
             Save
+          </button>
+          <button
+            className="px-6 py-3 border border-red-500 text-white rounded-md bg-red-500"
+            onClick={onClose}
+          >
+            Cancel
           </button>
         </div>
       </div>

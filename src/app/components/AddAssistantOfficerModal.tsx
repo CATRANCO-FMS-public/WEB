@@ -9,6 +9,8 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
   const [birthday, setBirthday] = useState<string>("");
   const [age, setAge] = useState<number | string>("");
   const [dateHired, setDateHired] = useState<string>("");
+  const [isFormValid, setIsFormValid] = useState<boolean>(false);
+  
   const [formData, setFormData] = useState({
     last_name: "",
     first_name: "",
@@ -38,6 +40,26 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
       setAge("");
     }
   }, [birthday]);
+
+  // Check if all required fields are filled
+  useEffect(() => {
+    const checkFormValidity = () => {
+      const requiredFields = [
+        formData.last_name,
+        formData.first_name,
+        formData.contact_number,
+        formData.contact_person,
+        formData.contact_person_number,
+        formData.address,
+        birthday,
+        dateHired
+      ];
+      
+      setIsFormValid(requiredFields.every(field => field.trim() !== ""));
+    };
+    
+    checkFormValidity();
+  }, [formData, birthday, dateHired]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -82,7 +104,7 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 h-[98vh] max-h-screen overflow-y-auto">
+      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b pb-4">
           <h2 className="text-2xl font-semibold">
             Add Passenger Assistant Officer Record
@@ -214,7 +236,10 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
           <button
             type="button"
             onClick={handleSubmit}
-            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
+            disabled={!isFormValid}
+            className={`${
+              isFormValid ? "bg-blue-500 hover:bg-blue-600" : "bg-blue-300 cursor-not-allowed"
+            } text-white px-6 py-2 rounded-md`}
           >
             Save
           </button>

@@ -3,12 +3,14 @@ import React, { useState, useEffect } from "react";
 import {
   getTrackerVehicleMappingById,
   updateTrackerVehicleMapping,
-} from "@/app/services/trackerService"; // Import services
+  toggleTrackerVehicleMappingStatus,
+} from "@/app/services/trackerService"; // Import services and toggle service
 import { getAllVehicles } from "@/app/services/vehicleService"; // Fetch available buses dynamically
 
 const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
   const [deviceName, setDeviceName] = useState("");
   const [trackerIdent, setTrackerIdent] = useState("");
+  const [originalTrackerIdent, setOriginalTrackerIdent] = useState(""); // Store original value
   const [busNumber, setBusNumber] = useState("");
   const [status, setStatus] = useState("");
   const [busOptions, setBusOptions] = useState([]); // Fetch bus options dynamically
@@ -23,6 +25,7 @@ const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
           const deviceData = await getTrackerVehicleMappingById(deviceId);
           setDeviceName(deviceData.device_name);
           setTrackerIdent(deviceData.tracker_ident);
+          setOriginalTrackerIdent(deviceData.tracker_ident); // Store original value
           setBusNumber(deviceData.vehicle?.vehicle_id || "");
           setStatus(deviceData.status);
 
@@ -42,27 +45,46 @@ const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
   }, [isOpen, deviceId]);
 
   const handleSave = async () => {
-    if (!deviceName || !trackerIdent || !busNumber || !status) {
-      setError("All fields are required.");
+    if (!deviceName || !busNumber) {
+      setError("Device name and bus number are required.");
       return;
     }
   
     try {
-      const updatedDevice = {
+      // Define a type for the updated device
+      type UpdatedDevice = {
+        id: any; // Use a more specific type if possible
+        device_name: string;
+        vehicle_id: string;
+        tracker_ident?: string; // Make this optional with ?
+      };
+      
+      // Create the object with the optional property
+      const updatedDevice: UpdatedDevice = {
         id: deviceId,
         device_name: deviceName,
-        tracker_ident: trackerIdent,
         vehicle_id: busNumber,
-        status,
       };
+      
+      // Only include tracker_ident if it was changed
+      if (trackerIdent !== originalTrackerIdent) {
+        updatedDevice.tracker_ident = trackerIdent;
+      }
   
       // Attempt to update the device
       await updateTrackerVehicleMapping(deviceId, updatedDevice);
+      
+      // If status has changed, toggle it separately
+      const originalStatus = await getTrackerVehicleMappingById(deviceId).then(data => data.status);
+      if (status !== originalStatus) {
+        await toggleTrackerVehicleMappingStatus(deviceId);
+      }
+      
       onSave(updatedDevice); // Pass updated device to parent
       onClose(); // Close modal
     } catch (err) {
       // If the error is related to a duplicate tracker ident, show a warning message
-      if (err.message.includes("The tracker ident has already been taken")) {
+      if (err.message && err.message.includes("The tracker ident has already been taken")) {
         setError(
           `Warning: The tracker ident is already in use. Do you still want to proceed with this?`
         );
@@ -125,10 +147,12 @@ const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
             onChange={(e) => setStatus(e.target.value)}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
           >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Maintenance">Maintenance</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Status changes will be processed separately from other updates.
+          </p>
         </div>
         <div className="flex justify-end space-x-4">
           <button

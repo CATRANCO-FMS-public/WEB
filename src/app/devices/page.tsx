@@ -14,6 +14,8 @@ import {
 } from "@/app/services/trackerService";
 import EditDeviceModal from "../components/EditDeviceModal";
 import { useQuery } from "@tanstack/react-query";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Define the device type
 interface Device {
@@ -59,6 +61,7 @@ const DeviceManagement = () => {
   const handleAddNewDevice = () => {
     setIsAddModalOpen(false);
     refetch();
+    toast.success("Device added successfully!");
   };
 
   const handleDelete = (recordId: number) => {
@@ -73,8 +76,10 @@ const DeviceManagement = () => {
         setDeleteRecordId(null);
         setIsDeletePopupOpen(false);
         refetch();
+        toast.success("Device deleted successfully!");
       } catch (error) {
         console.error("Error deleting tracker-to-vehicle mapping:", error);
+        toast.error("Failed to delete device. Please try again.");
       }
     }
   };
@@ -87,6 +92,11 @@ const DeviceManagement = () => {
   const handleEdit = (deviceId: number) => {
     setSelectedDeviceId(deviceId);
     setIsEditModalOpen(true);
+  };
+
+  const handleEditSave = () => {
+    refetch();
+    toast.success("Device updated successfully!");
   };
 
   return (
@@ -145,7 +155,7 @@ const DeviceManagement = () => {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           deviceId={selectedDeviceId}
-          onSave={() => refetch()}
+          onSave={handleEditSave}
         />
         <Confirmpopup
           isOpen={isDeletePopupOpen}
@@ -154,6 +164,7 @@ const DeviceManagement = () => {
           title="Delete Device"
           message="Are you sure you want to delete this tracker-to-vehicle mapping?"
         />
+        <ToastContainer position="top-right" autoClose={3000} />
       </section>
     </Layout>
   );

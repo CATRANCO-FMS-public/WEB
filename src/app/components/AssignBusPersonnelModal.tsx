@@ -112,8 +112,8 @@ const AssignBusPersonnelModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-between border-b pb-4">
+      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-5">
+        <div className="flex items-center justify-between border-b pb-3">
           <h2 className="text-2xl font-semibold">Assign Bus Personnel</h2>
           <button
             onClick={onClose}
@@ -122,9 +122,9 @@ const AssignBusPersonnelModal = ({
             &times;
           </button>
         </div>
-        <form className="grid grid-cols-1 gap-4 mt-4">
+        <form className="grid grid-cols-1 gap-3 mt-3">
           <div>
-            <h1 className="text-xl mt-4">Driver Assignment</h1>
+            <h1 className="text-xl mb-2">Driver Assignment</h1>
             {loading ? (
               <p>Loading drivers...</p>
             ) : (
@@ -136,7 +136,7 @@ const AssignBusPersonnelModal = ({
                 }}
                 className="h-10 text-lg border border-gray-300 rounded-md p-2 w-full"
               >
-                <option value="">Select a Driver</option>1
+                <option value="">Select a Driver</option>
                 {drivers.map((driver) => (
                   <option
                     key={driver.user_profile_id}
@@ -149,7 +149,7 @@ const AssignBusPersonnelModal = ({
             )}
           </div>
           <div>
-            <h1 className="text-xl mt-4">
+            <h1 className="text-xl mb-2">
               Passenger Assistant Officer Assignment
             </h1>
             {loading ? (
@@ -176,7 +176,7 @@ const AssignBusPersonnelModal = ({
             )}
           </div>
           <div>
-            <h1 className="text-xl mt-4">Select Vehicle</h1>
+            <h1 className="text-xl mb-2">Select Vehicle</h1>
             {loading ? (
               <p>Loading vehicles...</p>
             ) : (
@@ -210,7 +210,7 @@ const AssignBusPersonnelModal = ({
             )}
           </div>
 
-          <div className="flex justify-end space-x-4 mt-6">
+          <div className="flex justify-end space-x-4 mt-4">
             <button
               type="button"
               onClick={handleDoneClick}

@@ -14,6 +14,8 @@ import PersonnelRecord from "@/app/components/PersonnelRecord";
 import { getAllProfiles, deleteProfile } from "@/app/services/userProfile";
 import HistoryModal from "../components/HistoryModal";
 import ViewBioDataModal from "../components/ViewBioDataModal";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const extractHistoryFromProfiles = (profiles) => {
   return profiles.map((profile) => ({
@@ -93,9 +95,11 @@ const Personnel = () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       setDeleteRecordId(null);
       setIsDeletePopupOpen(false);
+      toast.success('Personnel successfully deleted!');
     },
     onError: (error) => {
       console.error("Error deleting profile:", error);
+      toast.error('Failed to delete personnel. Please try again.');
     }
   });
 
@@ -142,8 +146,10 @@ const Personnel = () => {
       setIsAddModalOpen(false);
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      toast.success('New personnel added successfully!');
     } catch (error) {
       console.error("Error adding new personnel:", error);
+      toast.error('Failed to add new personnel. Please try again.');
     }
   };
 
@@ -159,6 +165,7 @@ const Personnel = () => {
     setIsEditModalOpen(false);
     // Invalidate and refetch
     queryClient.invalidateQueries({ queryKey: ['profiles'] });
+    toast.success('Personnel information updated successfully!');
   };
 
   const handleViewBioData = (profileId) => {
@@ -291,6 +298,17 @@ const Personnel = () => {
           isOpen={isHistoryModalOpen}
           onClose={() => setIsHistoryModalOpen(false)}
           history={personnelHistory}
+        />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
         />
       </section>
     </Layout>

@@ -8,6 +8,8 @@ import Confirmpopup from "../components/Confirmpopup";
 import FeedbackRecord from "../components/FeedbackRecord";
 import { fetchAllFuelLogs } from "../services/feedbackService";
 import Pagination from "../components/Pagination";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface FeedbackRecord {
   feedback_logs_id: string;
@@ -46,6 +48,7 @@ const FeedbackRecordDisplay = () => {
       );
       setDeleteRecordId(null);
       setIsDeletePopupOpen(false);
+      toast.success("Feedback record deleted successfully!");
     }
   };
 
@@ -113,6 +116,7 @@ const FeedbackRecordDisplay = () => {
         title="Delete Feedback"
         message="Are you sure you want to delete this feedback?"
       />
+      <ToastContainer position="top-right" autoClose={3000} />
     </Layout>
   );
 };

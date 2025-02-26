@@ -62,6 +62,11 @@ const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
     setError("");
   };
 
+  // Check if form is valid
+  const isFormValid = () => {
+    return deviceName.trim() !== "" && trackerIdent.trim() !== "" && vehicleId.trim() !== "";
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -116,16 +121,21 @@ const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
         </div>
         <div className="flex justify-end space-x-4">
           <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
-          >
-            Cancel
-          </button>
-          <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            disabled={!isFormValid()}
+            className={`px-4 py-2 rounded-md ${
+              isFormValid()
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-blue-300 text-white cursor-not-allowed"
+            }`}
           >
             Save
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Cancel
           </button>
         </div>
       </div>

@@ -18,6 +18,8 @@ import {
   toggleMaintenanceSchedulingStatus,
 } from "../services/maintenanceService";
 import { AxiosError } from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import MaintenanceHistoryModal from "../components/MaintenanceHistoryModal";
 
@@ -34,6 +36,50 @@ interface MaintenanceRecord {
   mechanic_company_address?: string;
 }
 
+// Add this new interface for the confirmation modal
+interface ConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  message: string;
+}
+
+// Add this new component for confirmation
+const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  message 
+}) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white p-4 rounded shadow-lg w-96">
+        <h2 className="text-lg font-bold mb-4">Confirm Action</h2>
+        <p className="mb-4">{message}</p>
+        <div className="flex justify-end space-x-2">
+          <button
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MaintenanceManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -48,6 +94,10 @@ const MaintenanceManagement = () => {
   const [viewType, setViewType] = useState("active"); // "active" or "completed"
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 3;
+
+  // Add these new state variables for the confirmation modal
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<string | number | null>(null);
 
   // Fetch records using react-query
   const fetchRecords = async () => {
@@ -86,14 +136,17 @@ const MaintenanceManagement = () => {
       await toggleMaintenanceSchedulingStatus(Number(id), formData);
       refetch();
       setIsViewProofModalOpen(false);
+      toast.success("Maintenance record returned to active status");
     } catch (error) {
       if (error instanceof AxiosError) {
         console.error(
           "Error returning to active:",
           error.response?.data || error.message || error
         );
+        toast.error("Failed to return maintenance record to active status");
       } else {
         console.error("Unexpected error:", error);
+        toast.error("An unexpected error occurred");
       }
     }
   };
@@ -121,12 +174,27 @@ const MaintenanceManagement = () => {
 
   const handlePageChange = (page: number) => setCurrentPage(page);
 
+  // Update the handleRemove function to use the confirmation flow
   const handleRemove = async (id: string | number) => {
     try {
       await deleteMaintenanceScheduling(Number(id));
       refetch();
+      toast.success("Maintenance record deleted successfully");
     } catch (error) {
       console.error("Error deleting record:", error);
+      toast.error("Failed to delete maintenance record");
+    }
+  };
+  
+  // Add this new function to handle the delete confirmation
+  const handleDeleteClick = (id: string | number) => {
+    setRecordToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+  
+  const confirmDelete = () => {
+    if (recordToDelete !== null) {
+      handleRemove(recordToDelete);
     }
   };
 
@@ -137,8 +205,10 @@ const MaintenanceManagement = () => {
 
       if (maintenanceId) {
         await updateMaintenanceScheduling(maintenanceId, data);
+        toast.success("Maintenance record updated successfully");
       } else {
         await createMaintenanceScheduling(data);
+        toast.success("New maintenance record created successfully");
       }
 
       refetch();
@@ -146,6 +216,7 @@ const MaintenanceManagement = () => {
       setIsEditModalOpen(false);
     } catch (error) {
       console.error("Error saving record:", error);
+      toast.error("Failed to save maintenance record");
     }
   };
 
@@ -161,8 +232,10 @@ const MaintenanceManagement = () => {
       );
       refetch();
       setIsProofModalOpen(false);
+      toast.success("Completion proof submitted successfully");
     } catch (error) {
       console.error("Error submitting proof:", error);
+      toast.error("Failed to submit completion proof");
     }
   };
 
@@ -174,6 +247,7 @@ const MaintenanceManagement = () => {
   return (
     <Layout>
       <Header title="Bus Maintenance Management" />
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="options flex flex-col md:flex-row items-center p-4 w-full md:w-9/12 ml-1 space-y-4 md:space-y-0">
         {/* Active/Completed Toggle Buttons */}
         <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 md:space-x-2 w-full sm:w-auto">
@@ -308,12 +382,20 @@ const MaintenanceManagement = () => {
               </table>
               <div className="left-4 right-4 flex justify-between space-x-2">
                 {record.maintenance_status === "completed" ? (
-                  <button
-                    className="px-3 py-1.5 mt-3 bg-blue-500 text-white rounded hover:bg-blue-600 flex-1 sm:px-1 sm:py-2"
-                    onClick={() => handleViewProof(record)}
-                  >
-                    View Completion Proof
-                  </button>
+                  <>
+                    <button
+                      className="px-3 py-1.5 mt-3 bg-blue-500 text-white rounded hover:bg-blue-600 flex-1 sm:px-1 sm:py-2"
+                      onClick={() => handleViewProof(record)}
+                    >
+                      View Proof
+                    </button>
+                    <button
+                      className="px-3 py-1.5 mt-3 bg-red-500 text-white rounded hover:bg-red-600 flex-1 sm:px-1 sm:py-2"
+                      onClick={() => handleDeleteClick(record.maintenance_scheduling_id)}
+                    >
+                      Delete
+                    </button>
+                  </>
                 ) : (
                   <>
                     <button
@@ -327,9 +409,7 @@ const MaintenanceManagement = () => {
                     </button>
                     <button
                       className="px-3 py-1.5 mt-3 bg-red-500 text-white rounded hover:bg-red-600 flex-1 sm:px-1 sm:py-2"
-                      onClick={() =>
-                        handleRemove(record.maintenance_scheduling_id)
-                      }
+                      onClick={() => handleDeleteClick(record.maintenance_scheduling_id)}
                     >
                       Remove
                     </button>
@@ -384,6 +464,12 @@ const MaintenanceManagement = () => {
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
         history={filteredRecords} // Pass the records to the modal
+      />
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to delete this maintenance record? This action cannot be undone."
       />
     </Layout>
   );

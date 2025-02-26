@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaBus } from "react-icons/fa";
 import { createFuelLog } from "@/app/services/fuellogsService";
+import { toast } from "react-toastify";
 
 
 const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
@@ -8,7 +9,7 @@ const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
-    distanceTraveled: "",
+    odometerKM: "",
     fuelType: "",
     fuelPrice: "",
     fuel_liters_quantity: "",
@@ -50,7 +51,7 @@ const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
       setIsSubmitting(true);
       const formDataToSubmit = new FormData();
       formDataToSubmit.append("purchase_date", formData.date);
-      formDataToSubmit.append("odometer_km", formData.distanceTraveled);
+      formDataToSubmit.append("odometer_km", formData.odometerKM);
       formDataToSubmit.append(
         "fuel_liters_quantity",
         formData.fuel_liters_quantity
@@ -74,18 +75,30 @@ const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
       try {
         const response = await createFuelLog(formDataToSubmit);
         console.log("Fuel log created:", response);
-        onAdd(response.fuel_log);
+        onAdd(response);
         onClose();
+        toast.success("New fuel log added successfully!");
       } catch (error) {
         console.error("Failed to create fuel log:", error);
-        alert(
+        toast.error(
           error?.response?.data?.message ||
-            "An error occurred while creating the fuel log. Please try again."
+            "An error occurred while adding the fuel log. Please try again."
         );
       } finally {
         setIsSubmitting(false);
       }
     }
+  };
+
+  // Check if all required fields are filled
+  const areAllFieldsFilled = () => {
+    return (
+      formData.date &&
+      formData.odometerKM &&
+      formData.fuelType &&
+      formData.fuelPrice &&
+      formData.fuel_liters_quantity
+    );
   };
 
   return (
@@ -109,12 +122,12 @@ const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
                 required
               />
               <label className="block font-medium mt-4">
-                Distance Traveled (KM)
+                Odometer (KM)
               </label>
               <input
                 type="number"
-                name="distanceTraveled"
-                value={formData.distanceTraveled}
+                name="odometerKM"
+                value={formData.odometerKM}
                 onChange={handleChange}
                 className="w-full border border-gray-300 p-2 rounded"
                 required
@@ -188,19 +201,19 @@ const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-5 py-2 bg-gray-500 text-white rounded"
+              onClick={handleSubmit}
+              disabled={isSubmitting || !areAllFieldsFilled()}
+              className="px-5 py-2 bg-blue-500 text-white rounded disabled:bg-blue-300 disabled:cursor-not-allowed"
             >
-              Cancel
+              {isSubmitting ? "Adding..." : "Add"}
             </button>
             <button
               type="button"
-              onClick={handleSubmit}
+              onClick={onClose}
               disabled={isSubmitting}
-              className="px-5 py-2 bg-blue-500 text-white rounded"
+              className="px-5 py-2 bg-red-500 text-white rounded"
             >
-              {isSubmitting ? "Adding..." : "Add"}
+              Cancel
             </button>
           </div>
         </form>

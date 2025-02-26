@@ -5,6 +5,16 @@ const CompletionProofModal = ({ isOpen, onClose, record, onSubmit }) => {
   const [error, setError] = useState(null); // State to handle errors
   const [isSubmitting, setIsSubmitting] = useState(false); // State to manage loading state
 
+  // Reset the state when the modal is opened or closed
+  React.useEffect(() => {
+    if (!isOpen) {
+      // Reset state when modal closes
+      setProof(null);
+      setError(null);
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
+
   const handleProofChange = (e) => {
     setProof(e.target.files[0]);
     setError(null); // Clear error when a file is selected
@@ -22,8 +32,8 @@ const CompletionProofModal = ({ isOpen, onClose, record, onSubmit }) => {
     try {
       setIsSubmitting(true); // Set loading state
       await onSubmit(record.maintenance_scheduling_id, formData);
-      setIsSubmitting(false);
-      onClose(); // Close modal after successful submission
+      setIsSubmitting(false); // Reset loading state after successful submission
+      setProof(null); // Reset the proof state
     } catch (err) {
       setIsSubmitting(false);
       setError("Failed to submit proof. Please try again.");

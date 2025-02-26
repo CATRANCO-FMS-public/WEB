@@ -81,9 +81,26 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
     }
   };
 
+  // Add function to check if form is valid
+  const isFormValid = () => {
+    return (
+      busNumber.trim() !== "" &&
+      plateNumber.trim() !== "" &&
+      officialReceipt.trim() !== "" &&
+      certificateOfRegistration.trim() !== "" &&
+      engineNumber.trim() !== "" &&
+      chasisNumber.trim() !== "" &&
+      thirdPartyInsurance.trim() !== "" &&
+      thirdPartyPolicyNo.trim() !== "" &&
+      comprehensiveInsurance.trim() !== "" &&
+      supplier.trim() !== "" &&
+      route.trim() !== ""
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 h-[95vh] max-h-screen overflow-y-auto">
+      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b pb-4">
           <h2 className="text-2xl font-semibold">Add Bus Record</h2>
           <button
@@ -306,17 +323,22 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
           {/* Buttons */}
           <div className="col-span-2 mt-4 flex justify-end">
             <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md"
-            >
-              Cancel
-            </button>
-            <button
               type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md ml-2"
+              disabled={!isFormValid()}
+              className={`px-4 py-2 rounded-md ${
+                isFormValid() 
+                  ? "bg-blue-600 text-white hover:bg-blue-700" 
+                  : "bg-blue-300 text-white cursor-not-allowed"
+              }`}
             >
               Save
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md ml-2"
+            >
+              Cancel
             </button>
           </div>
         </form>

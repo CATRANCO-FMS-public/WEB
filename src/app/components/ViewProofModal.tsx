@@ -13,7 +13,7 @@ const ViewProofModal: React.FC<ViewProofModalProps> = ({
   proof,
   onReturnToActive,
 }) => {
-  const BASE_URL = "https://catranco.jwisnetwork.com/storage/";
+  const BASE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
 
   /**
    * Renders the image with the provided path.

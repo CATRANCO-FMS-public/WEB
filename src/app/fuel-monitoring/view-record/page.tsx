@@ -18,12 +18,16 @@ import {
 import { groupByTimeInterval } from "@/app/helper/fuel-helper";
 import FuelHistoryModal from "@/app/components/FuelHistoryModal";
 import Layout from "@/app/components/Layout";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Confirmpopup from "@/app/components/Confirmpopup";
 
 interface FuelLog {
   fuel_logs_id: string;
   vehicle_id: string;
   purchase_date: string;
   odometer_km: number;
+  distance_traveled: number;
   fuel_type: string;
   fuel_price: number;
   fuel_liters_quantity: number;
@@ -48,6 +52,8 @@ const ViewRecord = () => {
   const [editData, setEditData] = useState(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [historyData, setHistoryData] = useState<FuelLog[]>([]);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [fuelLogToDelete, setFuelLogToDelete] = useState<string | null>(null);
 
   const fetchLogs = async () => {
     try {
@@ -150,8 +156,25 @@ const ViewRecord = () => {
 
       // Re-fetch the logs after deleting to ensure the data is up to date
       await fetchLogs();
+      
+      // Show success toast
+      toast.success("Fuel log deleted successfully!");
     } catch (error) {
       console.error("Failed to delete fuel log", error);
+      toast.error("Failed to delete fuel log. Please try again.");
+    }
+  };
+
+  const confirmDelete = (fuelLogId) => {
+    setFuelLogToDelete(fuelLogId);
+    setIsConfirmDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (fuelLogToDelete) {
+      handleDeleteFuelLog(fuelLogToDelete);
+      setIsConfirmDeleteOpen(false);
+      setFuelLogToDelete(null);
     }
   };
 
@@ -159,7 +182,12 @@ const ViewRecord = () => {
     setSelectedFuelLog(record);
     setEditData(record);
     setIsEditModalOpen(true);
-    fetchLogs();
+  };
+
+  const handleUpdateSuccess = async () => {
+    await fetchLogs();
+    setIsEditModalOpen(false);
+    toast.success("Fuel log updated successfully!");
   };
 
   const handleViewDetails = (record) => {
@@ -229,6 +257,14 @@ const ViewRecord = () => {
   console.log("Selected Fuel Log:", selectedFuelLog);
   return (
     <Layout>
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Confirmpopup
+        isOpen={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Delete"
+        message="Are you sure you want to delete this fuel log? This action cannot be undone."
+      />
       <div className="flex flex-col md:flex-row bg-gray-100 ">
         <div className="flex-1 flex flex-col bg-slate-200 pb-10">
           <Header title="Fuel Monitoring" />
@@ -296,7 +332,8 @@ const ViewRecord = () => {
                 <thead>
                   <tr>
                     <th className="py-2 px-4">Date</th>
-                    <th className="py-2 px-4">Distance</th>
+                    <th className="py-2 px-4">Odometer KM</th>
+                    <th className="py-2 px-4">Distance Travelled</th>
                     <th className="py-2 px-4">Fuel Type</th>
                     <th className="py-2 px-4">Fuel Price</th>
                     <th className="py-2 px-4">Fuel Quantity</th>
@@ -318,6 +355,7 @@ const ViewRecord = () => {
                           {/* Formatting to show only the date */}
                         </td>
                         <td className="py-2 px-4">{entry.odometer_km} KM</td>
+                        <td className="py-2 px-4">{entry.distance_traveled} KM</td>
                         <td className="py-2 px-4">{entry.fuel_type}</td>
                         <td className="py-2 px-4">{entry.fuel_price}</td>
                         <td className="py-2 px-4">
@@ -338,9 +376,7 @@ const ViewRecord = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() =>
-                              handleDeleteFuelLog(entry.fuel_logs_id)
-                            }
+                            onClick={() => confirmDelete(entry.fuel_logs_id)}
                             className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 w-full md:w-auto"
                           >
                             Remove
@@ -415,7 +451,7 @@ const ViewRecord = () => {
             selectedBus={selectedBus}
             selectedFuelLog={selectedFuelLog}
             onClose={() => setIsEditModalOpen(false)}
-            onUpdate={() => handleEdit(selectedFuelLog)}
+            onUpdate={handleUpdateSuccess}
           />
         )}
 

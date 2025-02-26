@@ -121,7 +121,7 @@ const EditPersonnel: React.FC<EditPersonnelModalProps> = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96 h-[95vh] max-h-screen overflow-y-auto">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">Edit Personnel Assignment</h2>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -173,17 +173,20 @@ const EditPersonnel: React.FC<EditPersonnelModalProps> = ({
           </div>
         </div>
 
-        <div className="flex justify-between">
+        <div className="flex justify-end space-x-2">
           <button
             onClick={handleSubmit}
-            className={`px-4 py-2 bg-blue-500 text-white rounded ${
+            className={`w-24 px-4 py-2 bg-blue-500 text-white rounded ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
             disabled={loading}
           >
             {loading ? "Updating..." : "Update"}
           </button>
-          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+          <button 
+            onClick={onClose} 
+            className="w-24 px-4 py-2 bg-red-500 text-white rounded"
+          >
             Cancel
           </button>
         </div>

@@ -102,16 +102,16 @@ export const deleteTrackerVehicleMapping = async (id) => {
 };
 
 /**
- * Set the status of a tracker-to-vehicle mapping to inactive.
+ * Toggle the status of a tracker-to-vehicle mapping.
  * @param {string} id - The ID of the mapping.
- * @returns {Promise<Object>} - The updated mapping with inactive status.
+ * @returns {Promise<Object>} - The updated mapping with toggled status.
  */
-export const setTrackerVehicleMappingInactive = async (id) => {
+export const toggleTrackerVehicleMappingStatus = async (id) => {
   try {
-    const response = await api.patch(`/user/admin/tracker-vehicle/set_inactive/${id}`);
+    const response = await api.patch(`/user/admin/tracker-vehicle/toggle_status/${id}`);
     return response.data.data; // Adjust structure based on backend response
   } catch (error) {
-    console.error("Error setting tracker-to-vehicle mapping to inactive:", error);
+    console.error("Error toggling tracker-to-vehicle mapping status:", error);
     throw error.response?.data || error;
   }
 };
