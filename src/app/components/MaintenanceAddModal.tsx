@@ -13,6 +13,7 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
   const [mechanicCompany, setMechanicCompany] = useState("");
   const [mechanicCompanyAddress, setMechanicCompanyAddress] = useState("");
   const [otherMaintenanceType, setOtherMaintenanceType] = useState(""); // New state for "others"
+  const [error, setError] = useState(""); // Add error state
 
   // Maintenance types list
   const maintenanceTypes = [
@@ -28,11 +29,12 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
     if (isOpen) {
       const fetchInitialData = async () => {
         try {
+          setError(""); // Clear any previous errors
           const vehicleData = await getAllVehicles();
           setVehicles(vehicleData);
-
         } catch (error) {
           console.error("Error fetching data:", error);
+          setError("Failed to load vehicles. Please try again later.");
         }
       };
 
@@ -49,6 +51,23 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
       setOtherMaintenanceType("");
     }
   };
+
+  const clearForm = () => {
+    setVehicleId("");
+    setMaintenanceCost("");
+    setMaintenanceDate(new Date());
+    setMaintenanceType("");
+    setMechanicCompany("");
+    setMechanicCompanyAddress("");
+    setOtherMaintenanceType("");
+    setError("");
+  };
+
+  const handleClose = () => {
+    clearForm();
+    onClose();
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
     if (
@@ -61,25 +80,31 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
       return;
     }
 
-    const formattedDate = `${maintenanceDate.toLocaleDateString(
-      "en-CA"
-    )} ${maintenanceDate.toLocaleTimeString("en-GB", { hour12: false })}`;
+    try {
+      setError(""); // Clear any previous errors
+      const formattedDate = `${maintenanceDate.toLocaleDateString(
+        "en-CA"
+      )} ${maintenanceDate.toLocaleTimeString("en-GB", { hour12: false })}`;
 
-    const finalMaintenanceType =
-      maintenanceType === "others" ? otherMaintenanceType : maintenanceType;
+      const finalMaintenanceType =
+        maintenanceType === "others" ? otherMaintenanceType : maintenanceType;
 
-    const newRecord = {
-      vehicle_id: vehicleId || "N/A",
-      maintenance_cost: maintenanceCost || "0",
-      maintenance_date: formattedDate,
-      maintenance_type: finalMaintenanceType || "unspecified",
-      mechanic_company: mechanicCompany || "N/A",
-      mechanic_company_address: mechanicCompanyAddress || "N/A",
-      maintenance_status: "active",
-    };
+      const newRecord = {
+        vehicle_id: vehicleId || "N/A",
+        maintenance_cost: maintenanceCost || "0",
+        maintenance_date: formattedDate,
+        maintenance_type: finalMaintenanceType || "unspecified",
+        mechanic_company: mechanicCompany || "N/A",
+        mechanic_company_address: mechanicCompanyAddress || "N/A",
+        maintenance_status: "active",
+      };
 
-    await onSave(null, newRecord);
-    onClose();
+      await onSave(null, newRecord);
+      onClose();
+    } catch (error) {
+      console.error("Error saving maintenance record:", error);
+      setError("Failed to save maintenance record. Please try again later.");
+    }
   };
 
   if (!isOpen) return null;
@@ -89,6 +114,13 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
       <div className="bg-white p-6 rounded-lg shadow-lg w-[800px]">
         <h2 className="text-lg font-bold mb-4">Add New Maintenance Record</h2>
         
+        {/* Add error message display */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+            {error}
+          </div>
+        )}
+
         <div className="form grid grid-cols-2 gap-6">
           {/* Vehicle Info Column */}
           <div className="space-y-5">
@@ -248,7 +280,7 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
           </button>
           <button
             className="px-6 py-3 border border-red-500 text-white rounded-md bg-red-500"
-            onClick={onClose}
+            onClick={handleClose}
           >
             Cancel
           </button>

@@ -5,6 +5,7 @@ import { createProfile } from "@/app/services/userProfile";
 
 const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
   const formRef = useRef<HTMLFormElement>(null);
+  const [apiError, setApiError] = useState<string>("");
 
   const [birthday, setBirthday] = useState<string>("");
   const [age, setAge] = useState<number | string>("");
@@ -16,7 +17,7 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
     first_name: "",
     middle_initial: "",
     position: "passenger_assistant_officer",
-    sex: "Male",
+    sex: "",
     contact_number: "",
     contact_person: "",
     contact_person_number: "",
@@ -81,9 +82,28 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
     setDateHired(e.target.value);
   };
 
+  const resetForm = () => {
+    setFormData({
+      last_name: "",
+      first_name: "",
+      middle_initial: "",
+      position: "passenger_assistant_officer",
+      sex: "",
+      contact_number: "",
+      contact_person: "",
+      contact_person_number: "",
+      address: "",
+    });
+    setBirthday("");
+    setDateHired("");
+    setAge("");
+    setApiError("");
+  };
+
   const handleSubmit = async () => {
     if (formRef.current && formRef.current.reportValidity()) {
       try {
+        setApiError("");
         const profileData = {
           ...formData,
           date_of_birth: birthday,
@@ -92,12 +112,23 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
         const response = await createProfile(profileData);
         if (response && response.profile) {
           onSave(response.profile);
+          resetForm();
           onClose();
         }
       } catch (error) {
         console.error("Error creating profile:", error);
+        setApiError(
+          error.message || 
+          error.error || 
+          "An error occurred while creating the profile"
+        );
       }
     }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -110,12 +141,17 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
             Add Passenger Assistant Officer Record
           </h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-500 hover:text-gray-700 focus:outline-none"
           >
             &times;
           </button>
         </div>
+        {apiError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{apiError}</span>
+          </div>
+        )}
         <form ref={formRef} className="grid grid-cols-2 gap-4 mt-4" noValidate>
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -189,7 +225,9 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
               value={formData.sex}
               onChange={handleInputChange}
               className="w-full px-4 py-2 border rounded-md"
+              required
             >
+              <option value="">Select Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
@@ -245,7 +283,7 @@ const AddAssistantOfficerModal = ({ isOpen, onClose, onSave }) => {
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600"
           >
             Cancel

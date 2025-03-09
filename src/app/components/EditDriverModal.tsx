@@ -1,12 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { updateProfile, getProfileById } from "@/app/services/userProfile";
 
 const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
   const [birthday, setBirthday] = useState<string>(""); // State for birthday
   const [age, setAge] = useState<number | string>(""); // State for age
-  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [apiError, setApiError] = useState<string>(""); // Add API error state
   const [formData, setFormData] = useState({
     last_name: "",
     first_name: "",
@@ -22,6 +22,7 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
 
     status: "",
   });
+  const formRef = useRef<HTMLFormElement>(null); // Add form ref
 
   // Fetch user profile data when the modal is opened
   useEffect(() => {
@@ -94,20 +95,27 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const updatedProfile = {
-        ...formData,
-        date_of_birth: birthday,
-      };
-      if (!userProfileId) {
-        console.error("Error: Missing userProfileId");
-        return;
+    if (formRef.current && formRef.current.reportValidity()) {
+      try {
+        setApiError(""); // Clear any previous errors
+        const updatedProfile = {
+          ...formData,
+          date_of_birth: birthday,
+        };
+        if (!userProfileId) {
+          throw new Error("Error: Missing userProfileId");
+        }
+        await updateProfile(userProfileId, updatedProfile);
+        onSave({ ...updatedProfile, user_profile_id: userProfileId });
+        onClose();
+      } catch (error) {
+        console.error("Error updating profile:", error);
+        setApiError(
+          error.message || 
+          error.error || 
+          "An error occurred while updating the profile"
+        );
       }
-      await updateProfile(userProfileId, updatedProfile);
-      onSave({ ...updatedProfile, user_profile_id: userProfileId }); // Notify parent with updated profile
-      onClose(); // Close the modal
-    } catch (error) {
-      console.error("Error updating profile:", error);
     }
   };
 
@@ -115,7 +123,7 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 h-[95vh] max-h-screen overflow-y-auto">
+      <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 h-[85vh] max-h-screen overflow-y-auto">
         <div className="flex items-center justify-between border-b pb-4">
           <h2 className="text-2xl font-semibold">Edit Driver Record</h2>
           <button
@@ -126,7 +134,13 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mt-4">
+        {apiError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{apiError}</span>
+          </div>
+        )}
+
+        <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mt-4">
           {/* Left Column */}
           <div>
             <label className="block text-sm font-medium text-gray-700">

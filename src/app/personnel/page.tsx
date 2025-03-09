@@ -83,7 +83,7 @@ const Personnel = () => {
   const [selectedProfile, setSelectedProfile] = useState(null);
 
   // Replace useEffect with useQuery
-  const { data: profiles = [] } = useQuery({
+  const { data: profiles = [], isLoading, isError } = useQuery({
     queryKey: ['profiles'],
     queryFn: getAllProfiles
   });
@@ -214,44 +214,48 @@ const Personnel = () => {
               <button
                 className="flex items-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50 w-full sm:w-auto"
                 onClick={() => setIsAddModalOpen(true)}
-                style={{ height: "42px" }} // Match the input's height
+                style={{ height: "42px" }}
               >
                 <FaPlus size={22} className="mr-2 " />
                 Add New
               </button>
             </div>
 
-            <div className="records flex flex-col h-full">
-              <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 ml-5">
-                {paginatedProfiles.map((profile) => (
-                  <PersonnelRecord
-                    key={profile.profile.user_profile_id}
-                    driverId={profile.profile.user_profile_id}
-                    driverName={`${profile.profile.first_name} ${profile.profile.last_name}`}
-                    birthday={profile.profile.date_of_birth}
-                    age={calculateAge(profile.profile.date_of_birth)}
-                    licenseNumber={profile.profile.license_number}
-                    address={profile.profile.address}
-                    contactNumber={profile.profile.contact_number}
-                    contactPerson={profile.profile.contact_person}
-                    onDelete={() =>
-                      handleDelete(profile.profile.user_profile_id)
-                    }
-                    onEdit={() => handleEdit(profile.profile.user_profile_id)}
-                    onView={() =>
-                      handleViewBioData(profile.profile.user_profile_id)
-                    }
+            {isLoading ? (
+              <div className="text-center text-blue-500 mt-10">Loading personnel data...</div>
+            ) : isError ? (
+              <div className="text-center text-red-500 mt-10">Error loading personnel records.</div>
+            ) : filteredProfiles.length === 0 ? (
+              <div className="text-center text-gray-500 mt-10">No personnel records found.</div>
+            ) : (
+              <div className="records flex flex-col h-full">
+                <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 ml-5">
+                  {paginatedProfiles.map((profile) => (
+                    <PersonnelRecord
+                      key={profile.profile.user_profile_id}
+                      driverId={profile.profile.user_profile_id}
+                      driverName={`${profile.profile.first_name} ${profile.profile.last_name}`}
+                      birthday={profile.profile.date_of_birth}
+                      age={calculateAge(profile.profile.date_of_birth)}
+                      licenseNumber={profile.profile.license_number}
+                      address={profile.profile.address}
+                      contactNumber={profile.profile.contact_number}
+                      contactPerson={profile.profile.contact_person}
+                      onDelete={() => handleDelete(profile.profile.user_profile_id)}
+                      onEdit={() => handleEdit(profile.profile.user_profile_id)}
+                      onView={() => handleViewBioData(profile.profile.user_profile_id)}
+                    />
+                  ))}
+                </div>
+                <div className="pagination-container mb-[46%]">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
                   />
-                ))}
+                </div>
               </div>
-            </div>
-            <div className="pagination-container mb-[46%]">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-            </div>
+            )}
           </div>
         </div>
         {activeButton === "drivers" ? (

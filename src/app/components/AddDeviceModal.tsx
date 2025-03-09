@@ -33,11 +33,10 @@ const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
     // Check if all required fields are filled
     if (!deviceName.trim() || !trackerIdent.trim() || !vehicleId.trim()) {
       setError("All fields are required.");
-      return; // Prevent form submission if any field is empty
+      return;
     }
 
-    // Reset the error message before proceeding
-    setError("");
+    setError(""); // Clear any previous errors
 
     try {
       const mappingData = {
@@ -49,9 +48,16 @@ const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
       onSave(newMapping);
       resetForm();
       onClose();
-    } catch (err) {
-      console.error("Error creating tracker-to-vehicle mapping:", err);
-      setError("Failed to create mapping. Please try again.");
+    } catch (error: any) {
+      console.error("Error creating tracker-to-vehicle mapping:", error);
+      // Handle different types of errors
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError("Failed to create mapping. Please try again.");
+      }
     }
   };
 

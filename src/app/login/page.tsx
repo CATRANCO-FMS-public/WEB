@@ -5,10 +5,18 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { login, getProfile } from "../services/authService";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-// Simple Loading Spinner Component
+// Loading Spinner Component
 const Spinner = () => (
-  <div className="loader-border border-t-4 border-blue-500 border-solid w-8 h-8 rounded-full animate-spin"></div>
+  <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50">
+    <div className="flex flex-col items-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <p className="mt-4 text-gray-600">Logging in...</p>
+    </div>
+  </div>
 );
 
 interface FormData {
@@ -23,8 +31,7 @@ export default function AuthPage() {
   });
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // State for show/hide password
-  const [loginSuccess, setLoginSuccess] = useState(false); // State for successful login notification
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   React.useEffect(() => {
@@ -50,83 +57,84 @@ export default function AuthPage() {
     return errors;
   };
 
-  // Handle login form submission
   const handleLogin = async () => {
     const errors = validateLoginForm();
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      Object.values(errors).forEach(error => {
+        toast.error(error);
+      });
       return;
     }
 
     setLoading(true);
 
     try {
-      // Perform login
       const response = await login({
         username: formData.username,
         password: formData.password,
       });
 
       if (response?.token) {
-        // Fetch and store updated user profile data after login
         const userProfile = await getProfile();
         localStorage.setItem("userProfile", JSON.stringify(userProfile));
-
-        // Set login success to true
-        setLoginSuccess(true);
-
+        
+        toast.success("Successfully logged in!");
+        
         setTimeout(() => {
-          router.push("/dashboard"); // Redirect to dashboard
-        }, 1000); // Wait for notification to show before redirecting
+          router.push("/dashboard");
+        }, 1000);
       } else {
-        setFormErrors({
-          global: "Login failed. Please check your credentials.",
-        });
+        toast.error("Login failed. Please check your credentials.");
       }
     } catch (error) {
-      setFormErrors({
-        global: error.message || "Login failed. Please try again.",
-      });
+      toast.error(error.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle forgot password
-  const handleForgotPassword = () => {
-    router.push("/forgot-password"); // Redirect to forgot password page
-  };
-
   return (
-    <section className="h-screen flex flex-row bg-white">
+    <section className="min-h-screen flex flex-col md:flex-row bg-white">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      
       {/* Left Side - Logo */}
-      <div className="left w-1/2 h-full flex justify-center items-center">
+      <div className="w-full md:w-1/2 h-[30vh] md:h-screen flex justify-center items-center">
         <img
           src="/logo.png"
           alt="Logo"
-          className="w-4/5 object-contain ml-20"
+          className="w-4/5 max-w-[300px] md:max-w-none object-contain md:ml-20"
         />
       </div>
 
       {/* Right Side - Form */}
-      <div className="right w-1/2 h-full flex ml-10 items-center">
-        <div className="form-container h-3/4 w-4/5 bg-slate-200 rounded-xl shadow-lg shadow-cyan-500/50 flex flex-col items-center">
-          <div className="forms space-y-6 w-4/5 mt-24">
+      <div className="w-full md:w-1/2 flex-1 flex px-4 md:px-10 items-center">
+        <div className="form-container w-full md:w-4/5 bg-slate-200 rounded-xl shadow-lg shadow-cyan-500/50 flex flex-col items-center py-8 md:py-12 px-4 md:px-0">
+          <div className="forms space-y-6 w-full max-w-[400px] px-4 md:px-0 md:w-4/5">
             {/* Login Form Fields */}
             <Input
-              className="h-16 text-lg"
+              className="h-12 md:h-16 text-base md:text-lg"
               type="text"
               placeholder="Username"
               name="username"
               value={formData.username}
               onChange={handleChange}
             />
-            {formErrors.username && (
-              <p className="text-red-500">{formErrors.username}</p>
-            )}
+            
             <div className="relative">
               <Input
-                className="h-16 text-lg"
+                className="h-12 md:h-16 text-base md:text-lg pr-12"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 name="password"
@@ -135,39 +143,28 @@ export default function AuthPage() {
               />
               <button
                 type="button"
-                className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
               </button>
             </div>
-            {formErrors.password && (
-              <p className="text-red-500">{formErrors.password}</p>
-            )}
-            {formErrors.global && (
-              <p className="text-red-500">{formErrors.global}</p>
-            )}
           </div>
 
-          {/* Login and Forgot Password Buttons */}
-          <div className="btn-container mt-12 w-full flex flex-col items-center space-y-4">
+          {/* Login Button */}
+          <div className="btn-container mt-8 md:mt-12 w-full flex flex-col items-center px-4 md:px-0">
             <Button
-              className="h-16 w-4/5 text-white text-2xl font-bold bg-gradient-to-r from-blue-500 to-red-500"
+              className="h-12 md:h-16 w-full max-w-[400px] md:w-4/5 text-white text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-500 to-red-500 hover:opacity-90 transition-opacity"
               onClick={handleLogin}
               disabled={loading}
             >
-              {loading ? <Spinner /> : "Login"}
+              {loading ? "Logging in..." : "Login"}
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Success Notification (only shown on login page) */}
-      {loginSuccess && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
-          <p className="text-sm font-medium">Successfully Logged In</p>
-        </div>
-      )}
+      {loading && <Spinner />}
     </section>
   );
 }

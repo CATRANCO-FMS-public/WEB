@@ -71,7 +71,7 @@ const FeedbackRecordDisplay = () => {
   return (
     <Layout>
       <Header title="Feedback Records" />
-      <div className="content flex flex-col flex-1">
+      <div className="content flex flex-col flex-1 mb-3">
         <div className="options flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 p-4 w-full sm:w-9/12 ml-1">
           <input
             type="text"

@@ -8,8 +8,20 @@ import {
   FaBars,
 } from "react-icons/fa";
 import Link from "next/link";
-import { logout } from "../services/authService"; // Import the logout function
-import { useRouter } from "next/navigation"; // Import Next.js router for redirection
+import { logout } from "../services/authService";
+import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Loading Spinner Component
+const Spinner = () => (
+  <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50">
+    <div className="flex flex-col items-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <p className="mt-4 text-gray-600">Logging out...</p>
+    </div>
+  </div>
+);
 
 interface HeaderProps {
   title: string;
@@ -17,19 +29,19 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ title }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const router = useRouter(); // Initialize the router for redirection
-  const [burgerMenuVisible, setBurgerMenuVisible] = useState(false); // Correctly initialize
+  const router = useRouter();
+  const [burgerMenuVisible, setBurgerMenuVisible] = useState(false);
 
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
   };
 
   const toggleBurgerMenu = () => {
-    setBurgerMenuVisible(!burgerMenuVisible); // Update state
-  }; // New function
+    setBurgerMenuVisible(!burgerMenuVisible);
+  };
 
-  // Close dropdown if clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -45,48 +57,67 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
   }, []);
 
   const handleLogout = async () => {
-  try {
-    const token = localStorage.getItem("authToken");
+    try {
+      const token = localStorage.getItem("authToken");
 
-    // If there's no token, log the user out immediately (or redirect them to login)
-    if (!token) {
-      console.error("No token found, cannot log out.");
-      router.push("/login");
-      return;
+      if (!token) {
+        toast.error("No active session found");
+        router.push("/login");
+        return;
+      }
+
+      setIsLoading(true);
+      
+      try {
+        await logout();
+        localStorage.removeItem("authToken");
+        
+        toast.success("Successfully logged out!");
+
+        // Delay the redirect slightly to show the success message
+        setTimeout(() => {
+          router.push("/login");
+        }, 1000);
+      } catch (error) {
+        toast.error("Failed to logout. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    // Proceed with logout from the server (if applicable)
-    await logout(); // Call the logout function from authService
-
-    // Clear the token from localStorage
-    localStorage.removeItem("authToken");
-
-    // Redirect to the login page after logout
-    router.push("/login");
-  } catch (error) {
-    console.error("Logout failed:", error);
-    // Optionally, show a notification or error message to the user
-  }
-};
   return (
     <div className="header flex flex-row justify-between mt-7">
-      <div className="title ml-5 text-violet-700">
+      <div className="title ml-2 text-violet-700 pl-3">
         <h1 className="font-semibold text-2xl md:text-3xl lg:text-4xl">
           {title}
-        </h1>{" "}
-        {/* Responsive title sizes */}
+        </h1>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      
+      {isLoading && <Spinner />}
+      
+      
       <div className="icon-container">
         <div className="icons flex flex-row">
-          {/* Burger menu button with conditional white box */}
           <div className="md:hidden bg-white h-6 mt-0.5 mr-3">
-            {" "}
-            {/* White box only on smaller screens */}
             <button onClick={toggleBurgerMenu} className="md:hidden">
               <FaBars size={25} className="text-violet-700 cursor-pointer" />
             </button>
           </div>
-          {/* Icons for larger screens */}
           <div className="md:flex md:flex-row md:border-r-2  md:border-gray-400 md:mr-4 md:text-violet-700 hidden">
             <Link href="/notification">
               <FaBell size={25} className="mr-5 mt-2 cursor-pointer" />
@@ -123,7 +154,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
             )}
           </div>
         </div>
-        {/* Burger Menu Content (shown only when burgerMenuVisible is true) */}
         {burgerMenuVisible && (
           <div className="absolute top-16 right-0 bg-white shadow-lg rounded-md w-48 z-50">
             <Link

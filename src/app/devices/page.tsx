@@ -36,8 +36,8 @@ const DeviceManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
 
-  // Fetch devices using useQuery
-  const { data: devices = [], refetch } = useQuery({
+  // Fetch devices using useQuery with loading and error states
+  const { data: devices = [], isLoading, isError } = useQuery({
     queryKey: ["devices"],
     queryFn: getAllTrackerVehicleMappings,
   });
@@ -121,28 +121,38 @@ const DeviceManagement = () => {
               </button>
             </div>
 
-            <div className="records grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 ">
-              {paginatedDevices.map((device) => (
-                <DeviceRecord
-                  key={device.id}
-                  deviceId={typeof device.id === "string" ? Number(device.id) : device.id}
-                  deviceName={device.device_name}
-                  serialNumber={device.tracker_ident}
-                  busNumber={device.vehicle_id || "Unassigned"}
-                  status={device.status}
-                  onDelete={() => handleDelete(Number(device.id))}
-                  onEdit={() => handleEdit(Number(device.id))}
-                />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="text-center text-blue-500 mt-10">Loading devices...</div>
+            ) : isError ? (
+              <div className="text-center text-red-500 mt-10">Error loading devices.</div>
+            ) : filteredDevices.length === 0 ? (
+              <div className="text-center text-gray-500 mt-10">No devices found.</div>
+            ) : (
+              <>
+                <div className="records grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {paginatedDevices.map((device) => (
+                    <DeviceRecord
+                      key={device.id}
+                      deviceId={typeof device.id === "string" ? Number(device.id) : device.id}
+                      deviceName={device.device_name}
+                      serialNumber={device.tracker_ident}
+                      busNumber={device.vehicle_id || "Unassigned"}
+                      status={device.status}
+                      onDelete={() => handleDelete(Number(device.id))}
+                      onEdit={() => handleEdit(Number(device.id))}
+                    />
+                  ))}
+                </div>
 
-            <div className="mt-6">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
+                <div className="mt-6">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 

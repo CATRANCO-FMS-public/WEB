@@ -34,6 +34,7 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
   const [supplier, setSupplier] = useState("");
 
   const [isSubmitted, setIsSubmitted] = useState(false); // Track submission state
+  const [error, setError] = useState<string | null>(null); // Add error state
 
   const formatDate = (date: Date | string) => {
     if (!date) return null;
@@ -44,6 +45,7 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null); // Clear any previous errors
 
     const vehicleData = {
       vehicle_id: busNumber,
@@ -76,8 +78,16 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
       
       // No need to set isSubmitted to true anymore
       // The parent component will handle opening the AssignBusPersonnelModal
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding vehicle:", error);
+      // Handle different types of errors
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     }
   };
 
@@ -110,6 +120,14 @@ const AddBusRecordModal: React.FC<AddBusRecordModalProps> = ({
             &times;
           </button>
         </div>
+
+        {/* Add error message display */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mt-4">
           {/* Bus Number */}
           <div>

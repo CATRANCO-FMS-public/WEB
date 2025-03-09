@@ -80,7 +80,14 @@ export const createFuelLog = async (fuelLogData) => {
     return response.data;
   } catch (error) {
     console.error("Error creating fuel log:", error);
-    throw error.response ? error.response.data : error;
+    // Format validation errors if they exist
+    if (error.response?.data?.errors) {
+      throw { 
+        validationErrors: error.response.data.errors,
+        message: "Please check the form for errors"
+      };
+    }
+    throw error.response?.data || error;
   }
 };
 

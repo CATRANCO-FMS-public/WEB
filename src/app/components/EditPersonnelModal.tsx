@@ -40,10 +40,14 @@ const EditPersonnel: React.FC<EditPersonnelModalProps> = ({
   const [error, setError] = useState<string>("");
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(vehicleId);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDriverDropdownLoading, setIsDriverDropdownLoading] = useState(false);
+  const [isPAODropdownLoading, setIsPAODropdownLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfilesAndVehicles = async () => {
       setLoading(true);
+      setError("");
       try {
         const profiles = await getOffDutyUserProfiles();
         const driverProfiles = profiles.filter(
@@ -78,12 +82,12 @@ const EditPersonnel: React.FC<EditPersonnelModalProps> = ({
   }, [vehicleId]);
 
   const handleSubmit = async () => {
-    if (!selectedDriver) {
+    if (selectedDriver !== initialDriver && !selectedDriver) {
       setError("Please select a driver.");
       return;
     }
 
-    if (!selectedPAO) {
+    if (selectedPAO !== initialPAO && !selectedPAO) {
       setError("Please select a PAO.");
       return;
     }
@@ -98,15 +102,27 @@ const EditPersonnel: React.FC<EditPersonnelModalProps> = ({
       return;
     }
 
-    setLoading(true);
+    if (selectedDriver === initialDriver && selectedPAO === initialPAO) {
+      setError("No changes were made.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+    
     try {
+      const userProfileIds = [
+        selectedDriver === initialDriver ? initialDriver : selectedDriver,
+        selectedPAO === initialPAO ? initialPAO : selectedPAO
+      ];
+
       const response = await updateVehicleAssignment(assignmentId, {
-        user_profile_ids: [selectedDriver, selectedPAO],
+        user_profile_ids: userProfileIds,
         vehicle_id: selectedVehicle,
       });
 
       if (response?.message === "Vehicle Assignment Updated Successfully") {
-        onUpdate(selectedDriver, selectedPAO);
+        onUpdate(userProfileIds[0], userProfileIds[1]);
         onClose();
       } else {
         throw new Error(response?.message || "Update failed.");
@@ -115,7 +131,43 @@ const EditPersonnel: React.FC<EditPersonnelModalProps> = ({
       console.error("Error updating personnel assignment:", err);
       setError("Failed to update personnel. Please try again.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDriverDropdownClick = async () => {
+    if (drivers.length === 0) {
+      setIsDriverDropdownLoading(true);
+      try {
+        const profiles = await getOffDutyUserProfiles();
+        const driverProfiles = profiles.filter(
+          (profile) => profile.position === "driver"
+        );
+        setDrivers(driverProfiles);
+      } catch (error) {
+        console.error("Error fetching drivers:", error);
+        setError("Error fetching drivers.");
+      } finally {
+        setIsDriverDropdownLoading(false);
+      }
+    }
+  };
+
+  const handlePAODropdownClick = async () => {
+    if (paos.length === 0) {
+      setIsPAODropdownLoading(true);
+      try {
+        const profiles = await getOffDutyUserProfiles();
+        const paoProfiles = profiles.filter(
+          (profile) => profile.position === "passenger_assistant_officer"
+        );
+        setPaos(paoProfiles);
+      } catch (error) {
+        console.error("Error fetching PAOs:", error);
+        setError("Error fetching PAOs.");
+      } finally {
+        setIsPAODropdownLoading(false);
+      }
     }
   };
 
@@ -128,42 +180,58 @@ const EditPersonnel: React.FC<EditPersonnelModalProps> = ({
 
         <div className="mb-4">
           <label className="block text-sm font-medium">Driver</label>
-          <select
-            value={selectedDriver}
-            onChange={(e) => setSelectedDriver(e.target.value)}
-            className="w-full p-2 border rounded"
-            disabled={loading}
-          >
-            <option value="">Select a Driver</option>
-            {drivers.map((driver) => (
-              <option
-                key={driver.user_profile_id}
-                value={driver.user_profile_id}
-              >
-                {`${driver.first_name} ${driver.last_name}`}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            {isDriverDropdownLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+              </div>
+            )}
+            <select
+              value={selectedDriver}
+              onChange={(e) => setSelectedDriver(e.target.value)}
+              onClick={handleDriverDropdownClick}
+              className="w-full p-2 border rounded"
+              disabled={isSubmitting}
+            >
+              <option value="">Select a Driver</option>
+              {drivers.map((driver) => (
+                <option
+                  key={driver.user_profile_id}
+                  value={driver.user_profile_id}
+                >
+                  {`${driver.first_name} ${driver.last_name}`}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="mb-6">
           <label className="block text-sm font-medium">PAO</label>
-          <select
-            value={selectedPAO}
-            onChange={(e) => setSelectedPAO(e.target.value)}
-            className="w-full p-2 border rounded"
-            disabled={loading}
-          >
-            <option value="">Select a PAO</option>
-            {paos.map((pao) => (
-              <option
-                key={pao.user_profile_id}
-                value={pao.user_profile_id}
-              >
-                {`${pao.first_name} ${pao.last_name}`}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            {isPAODropdownLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-10">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+              </div>
+            )}
+            <select
+              value={selectedPAO}
+              onChange={(e) => setSelectedPAO(e.target.value)}
+              onClick={handlePAODropdownClick}
+              className="w-full p-2 border rounded"
+              disabled={isSubmitting}
+            >
+              <option value="">Select a PAO</option>
+              {paos.map((pao) => (
+                <option
+                  key={pao.user_profile_id}
+                  value={pao.user_profile_id}
+                >
+                  {`${pao.first_name} ${pao.last_name}`}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="mb-6">
@@ -176,16 +244,17 @@ const EditPersonnel: React.FC<EditPersonnelModalProps> = ({
         <div className="flex justify-end space-x-2">
           <button
             onClick={handleSubmit}
-            className={`w-24 px-4 py-2 bg-blue-500 text-white rounded ${
-              loading ? "opacity-50 cursor-not-allowed" : ""
+            className={`min-w-[96px] px-4 py-2 bg-blue-500 text-white rounded whitespace-nowrap ${
+              isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"
             }`}
-            disabled={loading}
+            disabled={isSubmitting}
           >
-            {loading ? "Updating..." : "Update"}
+            {isSubmitting ? "Updating..." : "Update"}
           </button>
           <button 
             onClick={onClose} 
-            className="w-24 px-4 py-2 bg-red-500 text-white rounded"
+            className="min-w-[96px] px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            disabled={isSubmitting}
           >
             Cancel
           </button>

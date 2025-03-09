@@ -22,6 +22,7 @@ const FuelMonitoring = () => {
   const [timeInterval, setTimeInterval] = useState("daily");
   const [selectedBus, setSelectedBus] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const itemsPerPage = 3; // Number of buses to display per page
 
@@ -279,6 +280,14 @@ const FuelMonitoring = () => {
           />
         </div>
       </section>
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <p className="mt-4 text-gray-600">Loading data...</p>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

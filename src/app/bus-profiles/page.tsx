@@ -241,20 +241,6 @@ const BusRecordDisplay = () => {
     };
   };
 
-  if (isVehiclesLoading || isAssignmentsLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (isVehiclesError) {
-    console.error('Error fetching vehicles:', vehiclesError);
-    return <div>Error loading vehicles. Please try again later.</div>;
-  }
-
-  if (isAssignmentsError) {
-    console.error('Error fetching assignments:', assignmentsError);
-    return <div>Error loading assignments. Please try again later.</div>;
-  }
-
   const filteredRecords = busRecords.filter((record) =>
     record.plate_number?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -280,84 +266,94 @@ const BusRecordDisplay = () => {
         theme="light"
       />
       <Header title="Bus Profiles" />
-      <div className="options flex flex-col md:flex-row items-center p-4 w-full md:w-9/12 ml-1 space-y-4 md:space-y-0">
-        <input
-          type="text"
-          placeholder="Find bus"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 md:mr-4 w-full md:w-auto"
-        />
-
-        <div className="flex flex-col md:flex-row w-full md:w-auto md:space-x-4">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50 w-full md:w-auto mb-4 md:mb-0"
-          >
-            <FaPlus size={22} className="mr-2" />
-            Add New
-          </button>
-
-          <button
-            onClick={openHistoryModal}
-            className="flex items-center px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 w-full md:w-auto"
-          >
-            <FaHistory size={22} className="mr-2" />
-            View History
-          </button>
-        </div>
-      </div>
-
-      <div className="records flex flex-col h-full">
-        <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 ml-5">
-          {paginatedRecords
-            .filter(record => {
-              // Only include records that have complete assignment data
-              if (record.vehicle_id === selectedVehicleId) {
-                const assignment = vehicleAssignments.find(
-                  a => a.vehicle_id === record.vehicle_id
-                );
-                const { driver, conductor } = getAssignedProfiles(record.vehicle_id);
-                
-                // Filter out the record if it's newly added and doesn't have complete data
-                return assignment && driver !== "N/A" && conductor !== "N/A" && !isAssignPersonnelModalOpen;
-              }
-              return true; // Keep all other records
-            })
-            .map((record: BusRecordType) => {
-              const assignment = vehicleAssignments.find(
-                (assignment) => assignment.vehicle_id === record.vehicle_id
-              );
-              const assignmentId = assignment ? assignment.vehicle_assignment_id : "";
-              const { driver, conductor } = getAssignedProfiles(record.vehicle_id);
-
-              return (
-                <BusRecord
-                  key={record.vehicle_id}
-                  vehicle_id={record.vehicle_id}
-                  busNumber={record.vehicle_id}
-                  ORNumber={record.or_id}
-                  CRNumber={record.cr_id}
-                  plateNumber={record.plate_number}
-                  thirdLBI={record.third_pli}
-                  ci={record.ci}
-                  assignedDriver={driver}
-                  assignedPAO={conductor}
-                  route={record.route || "Not Assigned"}
-                  assignmentId={assignmentId}
-                  onDelete={() => handleDelete(record.vehicle_id, assignmentId)}
-                  onUpdate={handleEditBus}
-                />
-              );
-            })}
-        </div>
-        <div className="pagination-container mb-[46%]">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
+      <div className="content flex flex-col flex-1">
+        <div className="options flex flex-col md:flex-row items-center p-4 w-full md:w-9/12 ml-1 space-y-4 md:space-y-0">
+          <input
+            type="text"
+            placeholder="Find bus"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 md:mr-4 w-full md:w-auto"
           />
+
+          <div className="flex flex-col md:flex-row w-full md:w-auto md:space-x-4">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50 w-full md:w-auto mb-4 md:mb-0"
+            >
+              <FaPlus size={22} className="mr-2" />
+              Add New
+            </button>
+
+            <button
+              onClick={openHistoryModal}
+              className="flex items-center px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 w-full md:w-auto"
+            >
+              <FaHistory size={22} className="mr-2" />
+              View History
+            </button>
+          </div>
         </div>
+
+        {isVehiclesLoading || isAssignmentsLoading ? (
+          <div className="text-center text-blue-500 mt-10">Loading bus profiles...</div>
+        ) : isVehiclesError || isAssignmentsError ? (
+          <div className="text-center text-red-500 mt-10">Error loading bus profiles.</div>
+        ) : busRecords.length === 0 ? (
+          <div className="text-center text-gray-500 mt-10">No bus profiles found.</div>
+        ) : (
+          <div className="records flex flex-col h-full">
+            <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 ml-5">
+              {paginatedRecords
+                .filter(record => {
+                  // Only include records that have complete assignment data
+                  if (record.vehicle_id === selectedVehicleId) {
+                    const assignment = vehicleAssignments.find(
+                      a => a.vehicle_id === record.vehicle_id
+                    );
+                    const { driver, conductor } = getAssignedProfiles(record.vehicle_id);
+                    
+                    // Filter out the record if it's newly added and doesn't have complete data
+                    return assignment && driver !== "N/A" && conductor !== "N/A" && !isAssignPersonnelModalOpen;
+                  }
+                  return true; // Keep all other records
+                })
+                .map((record: BusRecordType) => {
+                  const assignment = vehicleAssignments.find(
+                    (assignment) => assignment.vehicle_id === record.vehicle_id
+                  );
+                  const assignmentId = assignment ? assignment.vehicle_assignment_id : "";
+                  const { driver, conductor } = getAssignedProfiles(record.vehicle_id);
+
+                  return (
+                    <BusRecord
+                      key={record.vehicle_id}
+                      vehicle_id={record.vehicle_id}
+                      busNumber={record.vehicle_id}
+                      ORNumber={record.or_id}
+                      CRNumber={record.cr_id}
+                      plateNumber={record.plate_number}
+                      thirdLBI={record.third_pli}
+                      ci={record.ci}
+                      assignedDriver={driver}
+                      assignedPAO={conductor}
+                      route={record.route || "Not Assigned"}
+                      assignmentId={assignmentId}
+                      onDelete={() => handleDelete(record.vehicle_id, assignmentId)}
+                      onUpdate={handleEditBus}
+                    />
+                  );
+                })}
+            </div>
+            <div className="pagination-container mb-[46%]">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </div>
+        )}
       </div>
       {isDeletePopupOpen && (
         <Confirmpopup

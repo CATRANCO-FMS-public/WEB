@@ -419,7 +419,7 @@ const DispatchMonitoring: React.FC = () => {
         <div className="w-full md:w-5/6 flex flex-col h-full">
           <MapProvider>
             {loading ? (
-              <div className="text-center mt-8">Loading map...</div>
+              <div className="text-center text-blue-500 mt-8">Loading map...</div>
             ) : (
               <div className="sm:h-96 lg:h-[500px] border-2">
                 <DispatchMap

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { getVehicleById, updateVehicle } from "@/app/services/vehicleService";
@@ -26,6 +26,8 @@ const EditBusRecordModal = ({ vehicle_id, onClose, onSubmit, refreshData }) => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [apiError, setApiError] = useState<string>("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Fetch vehicle details when modal opens
   useEffect(() => {
@@ -85,39 +87,37 @@ const EditBusRecordModal = ({ vehicle_id, onClose, onSubmit, refreshData }) => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    if (formRef.current && formRef.current.reportValidity()) {
+      try {
+        setApiError("");
+        const updatedData = {
+          or_id: busDetails.or_id,
+          cr_id: busDetails.cr_id,
+          engine_number: busDetails.engine_number,
+          chasis_number: busDetails.chasis_number,
+          third_pli: busDetails.third_pli,
+          third_pli_policy_no: busDetails.third_pli_policy_no,
+          ci: busDetails.ci,
+          supplier: busDetails.supplier,
+          third_pli_validity: formatDate(third_pli_validity),
+          ci_validity: formatDate(ci_validity),
+          date_purchased: formatDate(date_purchased),
+          route: busDetails.route,
+        };
 
-    const updatedData = {
-      or_id: busDetails.or_id,
-      cr_id: busDetails.cr_id,
-      engine_number: busDetails.engine_number,
-      chasis_number: busDetails.chasis_number,
-      third_pli: busDetails.third_pli,
-      third_pli_policy_no: busDetails.third_pli_policy_no,
-      ci: busDetails.ci,
-      supplier: busDetails.supplier,
-      third_pli_validity: formatDate(third_pli_validity),
-      ci_validity: formatDate(ci_validity),
-      date_purchased: formatDate(date_purchased),
-      route: busDetails.route,
-    };
+        const updatedVehicle = await updateVehicle(vehicle_id, updatedData);
 
-    try {
-      const updatedVehicle = await updateVehicle(vehicle_id, updatedData);
-
-      // Call onSubmit to update parent component state
-      if (onSubmit) {
-        onSubmit(updatedVehicle);
-      }
-
-      onClose(); // Close the modal
-    } catch (err) {
-      console.error("Error updating vehicle:", err);
-      if (err.response?.data?.errors) {
-        const validationErrors = err.response.data.errors;
-        const errorMessages = Object.values(validationErrors).flat().join("\n");
-        alert(`Update failed:\n${errorMessages}`);
-      } else {
+        if (onSubmit) {
+          onSubmit(updatedVehicle);
+        }
         onClose();
+      } catch (error) {
+        console.error("Error updating vehicle:", error);
+        setApiError(
+          error.message || 
+          error.error || 
+          "An error occurred while updating the vehicle"
+        );
       }
     }
   };
@@ -135,7 +135,13 @@ const EditBusRecordModal = ({ vehicle_id, onClose, onSubmit, refreshData }) => {
           </button>
         </div>
 
-        <form onSubmit={handleUpdate} className="grid grid-cols-2 gap-4 mt-4">
+        {apiError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{apiError}</span>
+          </div>
+        )}
+
+        <form ref={formRef} onSubmit={handleUpdate} className="grid grid-cols-2 gap-4 mt-4">
           {/* Vehicle ID */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
@@ -145,7 +151,7 @@ const EditBusRecordModal = ({ vehicle_id, onClose, onSubmit, refreshData }) => {
               type="text"
               name="vehicle_id"
               value={busDetails.vehicle_id}
-              className="w-full px-4 py-2 border rounded-md"
+              className="w-full px-4 py-2 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
               disabled
             />
           </div>
@@ -185,7 +191,7 @@ const EditBusRecordModal = ({ vehicle_id, onClose, onSubmit, refreshData }) => {
               type="text"
               name="plate_number"
               value={busDetails.plate_number}
-              className="w-full px-4 py-2 border rounded-md"
+              className="w-full px-4 py-2 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
               disabled
             />
           </div>
