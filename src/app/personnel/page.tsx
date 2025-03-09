@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import Header from "../components/Header";
@@ -16,6 +16,8 @@ import HistoryModal from "../components/HistoryModal";
 import ViewBioDataModal from "../components/ViewBioDataModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AddDispatcherModal from "../components/AddDispatcherModal";
+import EditDispatcherModal from "../components/EditDispatcherModal";
 
 const extractHistoryFromProfiles = (profiles) => {
   return profiles.map((profile) => ({
@@ -50,6 +52,16 @@ const ButtonGroup = ({ activeButton, onClick, onViewHistory }) => {
         Passenger Assistant Officer
       </button>
       <button
+        className={`px-4 py-2 border-2 rounded-md transition-colors duration-300 ease-in-out w-full md:w-auto ${
+          activeButton === "dispatchers"
+            ? "bg-blue-500 text-white"
+            : "bg-gray-200 text-gray-800"
+        }`}
+        onClick={() => onClick("dispatchers")}
+      >
+        Dispatchers
+      </button>
+      <button
         className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center w-full md:w-auto mt-2 md:mt-0"
         onClick={onViewHistory}
       >
@@ -81,6 +93,61 @@ const Personnel = () => {
   const [personnelHistory, setPersonnelHistory] = useState([]);
   const [isViewBioDataModalOpen, setIsViewBioDataModalOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [toastKey, setToastKey] = React.useState(0);
+  const toastId = React.useRef<string | number | null>(null);
+
+  const showToast = async (operation: Promise<any>) => {
+    // Dismiss all existing toasts
+    toast.dismiss();
+    // Force remount toast container
+    setToastKey(prev => prev + 1);
+    
+    // Show loading toast
+    toastId.current = toast.loading("Processing request...", {
+      position: "top-right",
+      closeButton: false,
+      closeOnClick: false,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined
+    });
+
+    try {
+      await operation;
+      
+      // Update toast to success
+      toast.update(toastId.current, {
+        render: "New personnel added successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    } catch (error) {
+      // Update toast to error
+      toast.update(toastId.current, {
+        render: "Failed to add new personnel. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    }
+  };
 
   // Replace useEffect with useQuery
   const { data: profiles = [], isLoading, isError } = useQuery({
@@ -95,11 +162,11 @@ const Personnel = () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       setDeleteRecordId(null);
       setIsDeletePopupOpen(false);
-      toast.success('Personnel successfully deleted!');
+      showToast(Promise.resolve());
     },
     onError: (error) => {
       console.error("Error deleting profile:", error);
-      toast.error('Failed to delete personnel. Please try again.');
+      showToast(Promise.reject());
     }
   });
 
@@ -115,7 +182,9 @@ const Personnel = () => {
         item.profile &&
         (activeButton === "drivers"
           ? item.profile.position === "driver"
-          : item.profile.position === "passenger_assistant_officer")
+          : activeButton === "conductors"
+          ? item.profile.position === "passenger_assistant_officer"
+          : item.profile.position === "dispatcher")
     )
     .filter((profile) =>
       `${profile.profile.first_name} ${profile.profile.last_name}`
@@ -137,20 +206,17 @@ const Personnel = () => {
   };
 
   const handleAddNew = async (newProfile) => {
-    try {
+    const operation = async () => {
       const formattedProfile = {
         profile: newProfile,
       };
-      // Optimistically update the cache
-      queryClient.setQueryData(['profiles'], (old: any) => [...old, formattedProfile]);
+      
+      queryClient.setQueryData(['profiles'], (old: any) => [...(old || []), formattedProfile]);
       setIsAddModalOpen(false);
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
-      toast.success('New personnel added successfully!');
-    } catch (error) {
-      console.error("Error adding new personnel:", error);
-      toast.error('Failed to add new personnel. Please try again.');
-    }
+      await queryClient.invalidateQueries({ queryKey: ['profiles'] });
+    };
+
+    await showToast(operation());
   };
 
   const handleSaveEdit = (updatedProfile) => {
@@ -165,7 +231,7 @@ const Personnel = () => {
     setIsEditModalOpen(false);
     // Invalidate and refetch
     queryClient.invalidateQueries({ queryKey: ['profiles'] });
-    toast.success('Personnel information updated successfully!');
+    showToast(Promise.resolve());
   };
 
   const handleViewBioData = (profileId) => {
@@ -190,6 +256,16 @@ const Personnel = () => {
     setSelectedProfileId(profileId);
     setIsEditModalOpen(true);
   };
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      toast.dismiss();
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+      }
+    };
+  }, []);
 
   return (
     <Layout>
@@ -264,8 +340,14 @@ const Personnel = () => {
             onClose={() => setIsAddModalOpen(false)}
             onSave={handleAddNew}
           />
-        ) : (
+        ) : activeButton === "conductors" ? (
           <AddAssistantOfficerModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSave={handleAddNew}
+          />
+        ) : (
+          <AddDispatcherModal
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
             onSave={handleAddNew}
@@ -278,8 +360,15 @@ const Personnel = () => {
             userProfileId={selectedProfileId}
             onSave={handleSaveEdit}
           />
-        ) : (
+        ) : activeButton === "conductors" ? (
           <EditAssistantOfficerModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            userProfileId={selectedProfileId}
+            onSave={handleSaveEdit}
+          />
+        ) : (
+          <EditDispatcherModal
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
             userProfileId={selectedProfileId}
@@ -304,15 +393,20 @@ const Personnel = () => {
           history={personnelHistory}
         />
         <ToastContainer
+          key={toastKey}
           position="top-right"
-          autoClose={3000}
+          autoClose={2000}
           hideProgressBar={false}
-          newestOnTop
-          closeOnClick
+          newestOnTop={false}
+          closeOnClick={false}
           rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
+          pauseOnFocusLoss={false}
+          draggable={false}
+          pauseOnHover={false}
+          theme="light"
+          limit={1}
+          style={{ zIndex: 9999 }}
+          containerId="personnel-toasts"
         />
       </section>
     </Layout>

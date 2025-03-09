@@ -35,9 +35,11 @@ const DeviceManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
+  const [toastKey, setToastKey] = React.useState(0);
+  const toastId = React.useRef<string | number | null>(null);
 
   // Fetch devices using useQuery with loading and error states
-  const { data: devices = [], isLoading, isError } = useQuery({
+  const { data: devices = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["devices"],
     queryFn: getAllTrackerVehicleMappings,
   });
@@ -58,10 +60,66 @@ const DeviceManagement = () => {
     }
   };
 
-  const handleAddNewDevice = () => {
-    setIsAddModalOpen(false);
-    refetch();
-    toast.success("Device added successfully!");
+  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+    // Dismiss all existing toasts
+    toast.dismiss();
+    // Force remount toast container
+    setToastKey(prev => prev + 1);
+    
+    // Show loading toast
+    toastId.current = toast.loading(loadingMessage, {
+      position: "top-right",
+      closeButton: false,
+      closeOnClick: false,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined
+    });
+
+    try {
+      await operation;
+      
+      // Update toast to success
+      toast.update(toastId.current, {
+        render: "Operation completed successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    } catch (error) {
+      // Update toast to error
+      toast.update(toastId.current, {
+        render: "Operation failed. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    }
+  };
+
+  const handleAddNewDevice = async () => {
+    const operation = async () => {
+      setIsAddModalOpen(false);
+      await refetch();
+    };
+
+    await showToast(operation(), "Adding new device...");
   };
 
   const handleDelete = (recordId: number) => {
@@ -71,16 +129,14 @@ const DeviceManagement = () => {
 
   const confirmDelete = async () => {
     if (deleteRecordId !== null) {
-      try {
+      const operation = async () => {
         await deleteTrackerVehicleMapping(deleteRecordId.toString());
         setDeleteRecordId(null);
         setIsDeletePopupOpen(false);
-        refetch();
-        toast.success("Device deleted successfully!");
-      } catch (error) {
-        console.error("Error deleting tracker-to-vehicle mapping:", error);
-        toast.error("Failed to delete device. Please try again.");
-      }
+        await refetch();
+      };
+
+      await showToast(operation(), "Deleting device...");
     }
   };
 
@@ -94,10 +150,24 @@ const DeviceManagement = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSave = () => {
-    refetch();
-    toast.success("Device updated successfully!");
+  const handleEditSave = async () => {
+    const operation = async () => {
+      setIsEditModalOpen(false);
+      await refetch();
+    };
+
+    await showToast(operation(), "Updating device...");
   };
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      toast.dismiss();
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+      }
+    };
+  }, []);
 
   return (
     <Layout>
@@ -174,7 +244,22 @@ const DeviceManagement = () => {
           title="Delete Device"
           message="Are you sure you want to delete this tracker-to-vehicle mapping?"
         />
-        <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer
+          key={toastKey}
+          position="top-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick={false}
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={false}
+          pauseOnHover={false}
+          theme="light"
+          limit={1}
+          style={{ zIndex: 9999 }}
+          containerId="device-management-toasts"
+        />
       </section>
     </Layout>
   );

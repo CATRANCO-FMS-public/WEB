@@ -35,6 +35,8 @@ const BusRecordDisplay = () => {
   const [selectedVehicleId, setSelectedVehicleId] = useState(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [busHistory, setBusHistory] = useState([]);
+  const [toastKey, setToastKey] = React.useState(0);
+  const toastId = React.useRef<string | number | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -105,22 +107,72 @@ const BusRecordDisplay = () => {
     setIsDeletePopupOpen(true);
   };
 
+  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+    // Dismiss all existing toasts
+    toast.dismiss();
+    // Force remount toast container
+    setToastKey(prev => prev + 1);
+    
+    // Show loading toast
+    toastId.current = toast.loading(loadingMessage, {
+      position: "top-right",
+      closeButton: false,
+      closeOnClick: false,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined
+    });
+
+    try {
+      await operation;
+      
+      // Update toast to success
+      toast.update(toastId.current, {
+        render: "Operation completed successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    } catch (error) {
+      // Update toast to error
+      toast.update(toastId.current, {
+        render: "Operation failed. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    }
+  };
+
   const confirmDelete = async () => {
     if (deleteRecordId && deleteAssignmentId) {
-      try {
+      const operation = async () => {
         await Promise.all([
           deleteVehicleMutation.mutateAsync(deleteRecordId),
           deleteAssignmentMutation.mutateAsync(deleteAssignmentId)
         ]);
-        toast.success("Bus record deleted successfully!");
-      } catch (error) {
-        console.error("Error deleting vehicle and/or assignment:", error);
-        toast.error("Failed to delete bus record");
-      } finally {
         setDeleteRecordId(null);
         setDeleteAssignmentId(null);
         setIsDeletePopupOpen(false);
-      }
+      };
+
+      await showToast(operation(), "Deleting bus record...");
     }
   };
 
@@ -129,92 +181,71 @@ const BusRecordDisplay = () => {
     setIsDeletePopupOpen(false);
   };
 
-  const handleAddNewBus = (newBus: any) => {
-    queryClient.setQueryData(['vehicles'], (old: any) => [...old, newBus]);
-    setSelectedVehicleId(newBus.vehicle_id);
-    setIsAssignPersonnelModalOpen(true);
-    queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-    toast.success("New bus record added successfully!");
+  const handleAddNewBus = async (newBus: any) => {
+    const operation = async () => {
+      queryClient.setQueryData(['vehicles'], (old: any) => [...old, newBus]);
+      setSelectedVehicleId(newBus.vehicle_id);
+      setIsAssignPersonnelModalOpen(true);
+      await queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+    };
+
+    await showToast(operation(), "Adding new bus...");
   };
 
-  const handleEditBus = (updatedBus) => {
-    queryClient.setQueryData(['vehicles'], (old: any[]) =>
-      old.map((record) =>
-        record.vehicle_id === updatedBus.vehicle_id ? {
-          ...record,
-          plate_number: updatedBus.plate_number || record.plate_number,
-          or_id: updatedBus.or_id || record.or_id,
-          cr_id: updatedBus.cr_id || record.cr_id,
-          third_pli: updatedBus.third_pli || record.third_pli,
-          ci: updatedBus.ci || record.ci,
-          route: updatedBus.route || record.route
-        } : record
-      )
-    );
-    
-    if (updatedBus.assignedDriver || updatedBus.assignedPAO) {
-      queryClient.invalidateQueries({ 
-        queryKey: ['vehicleAssignments'],
-        refetchType: 'active'
-      });
+  const handleEditBus = async (updatedBus) => {
+    const operation = async () => {
+      queryClient.setQueryData(['vehicles'], (old: any[]) =>
+        old.map((record) =>
+          record.vehicle_id === updatedBus.vehicle_id ? {
+            ...record,
+            plate_number: updatedBus.plate_number || record.plate_number,
+            or_id: updatedBus.or_id || record.or_id,
+            cr_id: updatedBus.cr_id || record.cr_id,
+            third_pli: updatedBus.third_pli || record.third_pli,
+            ci: updatedBus.ci || record.ci,
+            route: updatedBus.route || record.route
+          } : record
+        )
+      );
       
-      queryClient.refetchQueries({ 
-        queryKey: ['vehicleAssignments'],
-        type: 'active'
-      });
-    }
-    
-    setIsEditModalOpen(false);
-    toast.success("Bus record updated successfully!");
+      if (updatedBus.assignedDriver || updatedBus.assignedPAO) {
+        await queryClient.invalidateQueries({ 
+          queryKey: ['vehicleAssignments'],
+          refetchType: 'active'
+        });
+        
+        await queryClient.refetchQueries({ 
+          queryKey: ['vehicleAssignments'],
+          type: 'active'
+        });
+      }
+      
+      setIsEditModalOpen(false);
+    };
+
+    await showToast(operation(), "Updating bus record...");
   };
 
   const handleAddVehicleAssignment = async (newAssignment) => {
-    try {
-      // Close the modal first
+    const operation = async () => {
       setIsAssignPersonnelModalOpen(false);
       
-      // Show loading toast
-      const loadingToast = toast.loading("Updating bus personnel...");
-      
-      // Force immediate invalidation with refetch
       await queryClient.invalidateQueries({ 
         queryKey: ['vehicleAssignments'],
         refetchType: 'active',
         exact: true
       });
       
-      try {
-        // Force a hard refetch of the data immediately
-        await queryClient.refetchQueries({ 
-          queryKey: ['vehicleAssignments'],
-          exact: true,
-          type: 'active'
-        });
-        
-        // Force a re-render by setting state
-        setCurrentPage(prev => prev);
-        
-        // Update toast immediately
-        toast.update(loadingToast, {
-          render: "Bus personnel assigned successfully!",
-          type: "success",
-          isLoading: false,
-          autoClose: 3000
-        });
-      } catch (error) {
-        console.error("Error refetching data:", error); 
-        toast.update(loadingToast, {
-          render: "Error refreshing data. Please refresh the page.",
-          type: "error",
-          isLoading: false,
-          autoClose: 5000
-        });
-      }
+      await queryClient.refetchQueries({ 
+        queryKey: ['vehicleAssignments'],
+        exact: true,
+        type: 'active'
+      });
       
-    } catch (error) {
-      console.error("Error updating vehicle assignments:", error);
-      toast.error("Failed to assign bus personnel. Please try again.");
-    }
+      setCurrentPage(prev => prev);
+    };
+
+    await showToast(operation(), "Updating bus personnel...");
   };
 
   const getAssignedProfiles = (vehicleId) => {
@@ -251,19 +282,33 @@ const BusRecordDisplay = () => {
     currentPage * itemsPerPage
   );
 
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      toast.dismiss();
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+      }
+    };
+  }, []);
+
   return (
     <Layout>
       <ToastContainer
+        key={toastKey}
         position="top-right"
-        autoClose={3000}
+        autoClose={2000}
         hideProgressBar={false}
         newestOnTop={false}
-        closeOnClick
+        closeOnClick={false}
         rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
         theme="light"
+        limit={1}
+        style={{ zIndex: 9999 }}
+        containerId="bus-profiles-toasts"
       />
       <Header title="Bus Profiles" />
       <div className="content flex flex-col flex-1">

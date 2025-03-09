@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 interface PaginationProps {
   currentPage: number;
@@ -12,6 +12,18 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
   const endPage = Math.min(totalPages, startPage + visiblePages - 1);
 
   const pages = Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
+
+  // Automatically adjust currentPage if it's greater than totalPages
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      onPageChange(totalPages);
+    } else if (totalPages === 0 && currentPage !== 1) {
+      onPageChange(1);
+    }
+  }, [currentPage, totalPages, onPageChange]);
+
+  // Don't render pagination if there are no pages
+  if (totalPages === 0) return null;
 
   return (
     <div className="pagination flex items-center justify-center space-x-2 mt-6">

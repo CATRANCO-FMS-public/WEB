@@ -54,6 +54,8 @@ const ViewRecord = () => {
   const [historyData, setHistoryData] = useState<FuelLog[]>([]);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [fuelLogToDelete, setFuelLogToDelete] = useState<string | null>(null);
+  const [toastKey, setToastKey] = React.useState(0);
+  const toastId = React.useRef<string | number | null>(null);
 
   const fetchLogs = async () => {
     try {
@@ -147,22 +149,71 @@ const ViewRecord = () => {
       },
     },
   };
-  const handleDeleteFuelLog = async (fuelLogId) => {
+
+  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+    // Dismiss all existing toasts
+    toast.dismiss();
+    // Force remount toast container
+    setToastKey(prev => prev + 1);
+    
+    // Show loading toast
+    toastId.current = toast.loading(loadingMessage, {
+      position: "top-right",
+      closeButton: false,
+      closeOnClick: false,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined
+    });
+
     try {
-      await deleteFuelLog(fuelLogId); // API call to delete fuel log
+      await operation;
+      
+      // Update toast to success
+      toast.update(toastId.current, {
+        render: "Operation completed successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    } catch (error) {
+      // Update toast to error
+      toast.update(toastId.current, {
+        render: error.response?.data?.message || "Operation failed. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+      throw error;
+    }
+  };
+
+  const handleDeleteFuelLog = async (fuelLogId) => {
+    const operation = async () => {
+      await deleteFuelLog(fuelLogId);
       setFuelLogs((prevLogs) =>
         prevLogs.filter((log) => log.fuel_logs_id !== fuelLogId)
       );
-
-      // Re-fetch the logs after deleting to ensure the data is up to date
       await fetchLogs();
-      
-      // Show success toast
-      toast.success("Fuel log deleted successfully!");
-    } catch (error) {
-      console.error("Failed to delete fuel log", error);
-      toast.error("Failed to delete fuel log. Please try again.");
-    }
+    };
+
+    await showToast(operation(), "Deleting fuel log...");
   };
 
   const confirmDelete = (fuelLogId) => {
@@ -185,9 +236,12 @@ const ViewRecord = () => {
   };
 
   const handleUpdateSuccess = async () => {
-    await fetchLogs();
-    setIsEditModalOpen(false);
-    toast.success("Fuel log updated successfully!");
+    const operation = async () => {
+      await fetchLogs();
+      setIsEditModalOpen(false);
+    };
+
+    await showToast(operation(), "Updating fuel log...");
   };
 
   const handleViewDetails = (record) => {
@@ -198,11 +252,13 @@ const ViewRecord = () => {
   };
 
   const handleAdd = async (updatedRecord) => {
-    setFuelLogs((prevLogs) => {
-      const newLogs = [...prevLogs, updatedRecord];
-      return newLogs;
-    });
-    await fetchLogs(); // Now await works because handleAdd is async
+    const operation = async () => {
+      setFuelLogs((prevLogs) => [...prevLogs, updatedRecord]);
+      await fetchLogs();
+      setIsAddModalOpen(false);
+    };
+
+    await showToast(operation(), "Adding new fuel log...");
   };
 
   const closeAddModal = () => {
@@ -240,9 +296,10 @@ const ViewRecord = () => {
   };
 
   const handlePrint = async () => {
-    const chartElement = document.querySelector(".chart-container");
-    if (!chartElement) return;
-    try {
+    const operation = async () => {
+      const chartElement = document.querySelector(".chart-container");
+      if (!chartElement) throw new Error("Chart element not found");
+      
       const canvas = await html2canvas(chartElement as HTMLElement);
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("landscape");
@@ -250,14 +307,40 @@ const ViewRecord = () => {
       const pageHeight = pdf.internal.pageSize.getHeight();
       pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
       pdf.save(`view-record-bus-${selectedBus}.pdf`);
-    } catch (err) {
-      console.error("Error generating PDF:", err);
-    }
+    };
+
+    await showToast(operation(), "Generating PDF...");
   };
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      toast.dismiss();
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+      }
+    };
+  }, []);
+
   console.log("Selected Fuel Log:", selectedFuelLog);
   return (
     <Layout>
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        key={toastKey}
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
+        theme="light"
+        limit={1}
+        style={{ zIndex: 9999 }}
+        containerId="fuel-monitoring-toasts"
+      />
       <Confirmpopup
         isOpen={isConfirmDeleteOpen}
         onClose={() => setIsConfirmDeleteOpen(false)}

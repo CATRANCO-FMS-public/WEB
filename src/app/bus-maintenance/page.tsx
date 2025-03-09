@@ -99,6 +99,63 @@ const MaintenanceManagement = () => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState<string | number | null>(null);
 
+  const [toastKey, setToastKey] = React.useState(0);
+  const toastId = React.useRef<string | number | null>(null);
+
+  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+    // Dismiss all existing toasts
+    toast.dismiss();
+    // Force remount toast container
+    setToastKey(prev => prev + 1);
+    
+    // Show loading toast
+    toastId.current = toast.loading(loadingMessage, {
+      position: "top-right",
+      closeButton: false,
+      closeOnClick: false,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined
+    });
+
+    try {
+      await operation;
+      
+      // Update toast to success
+      toast.update(toastId.current, {
+        render: "Operation completed successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    } catch (error) {
+      // Update toast to error
+      toast.update(toastId.current, {
+        render: "Operation failed. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+      throw error; // Re-throw to handle specific error cases
+    }
+  };
+
   // Fetch records using react-query
   const fetchRecords = async () => {
     if (viewType === "active") {
@@ -124,30 +181,17 @@ const MaintenanceManagement = () => {
     : [];
 
   const handleReturnToActive = async (id: string | number) => {
-    try {
+    const operation = async () => {
       const formData = new FormData();
       if (currentRecord?.maintenance_complete_proof instanceof File) {
-        formData.append(
-          "maintenance_complete_proof",
-          currentRecord.maintenance_complete_proof
-        );
+        formData.append("maintenance_complete_proof", currentRecord.maintenance_complete_proof);
       }
       await toggleMaintenanceSchedulingStatus(Number(id), formData);
-      refetch();
+      await refetch();
       setIsViewProofModalOpen(false);
-      toast.success("Maintenance record returned to active status");
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        console.error(
-          "Error returning to active:",
-          error.response?.data || error.message || error
-        );
-        toast.error("Failed to return maintenance record to active status");
-      } else {
-        console.error("Unexpected error:", error);
-        toast.error("An unexpected error occurred");
-      }
-    }
+    };
+
+    await showToast(operation(), "Returning to active status...");
   };
 
   // Function to open the history modal
@@ -175,14 +219,12 @@ const MaintenanceManagement = () => {
 
   // Update the handleRemove function to use the confirmation flow
   const handleRemove = async (id: string | number) => {
-    try {
+    const operation = async () => {
       await deleteMaintenanceScheduling(Number(id));
-      refetch();
-      toast.success("Maintenance record deleted successfully");
-    } catch (error) {
-      console.error("Error deleting record:", error);
-      toast.error("Failed to delete maintenance record");
-    }
+      await refetch();
+    };
+
+    await showToast(operation(), "Deleting maintenance record...");
   };
   
   // Add this new function to handle the delete confirmation
@@ -198,44 +240,35 @@ const MaintenanceManagement = () => {
   };
 
   const handleSave = async (id: string | number, data: MaintenanceRecord) => {
-    try {
+    const operation = async () => {
       const maintenanceId = typeof id === "string" ? Number(id) : id;
       if (isNaN(maintenanceId)) throw new Error("Invalid ID");
 
       if (maintenanceId) {
         await updateMaintenanceScheduling(maintenanceId, data);
-        toast.success("Maintenance record updated successfully");
       } else {
         await createMaintenanceScheduling(data);
-        toast.success("New maintenance record created successfully");
       }
 
-      refetch();
+      await refetch();
       setIsAddModalOpen(false);
       setIsEditModalOpen(false);
-    } catch (error) {
-      console.error("Error saving record:", error);
-      toast.error("Failed to save maintenance record");
-    }
+    };
+
+    await showToast(
+      operation(),
+      id ? "Updating maintenance record..." : "Creating maintenance record..."
+    );
   };
 
-
-  const handleProofSubmit = async (
-    id: string | number,
-    proofData: FormData
-  ) => {
-    try {
-      const updatedRecord = await toggleMaintenanceSchedulingStatus(
-        Number(id),
-        proofData
-      );
-      refetch();
+  const handleProofSubmit = async (id: string | number, proofData: FormData) => {
+    const operation = async () => {
+      await toggleMaintenanceSchedulingStatus(Number(id), proofData);
+      await refetch();
       setIsProofModalOpen(false);
-      toast.success("Completion proof submitted successfully");
-    } catch (error) {
-      console.error("Error submitting proof:", error);
-      toast.error("Failed to submit completion proof");
-    }
+    };
+
+    await showToast(operation(), "Submitting completion proof...");
   };
 
   const handleViewProof = (record: MaintenanceRecord) => {
@@ -243,10 +276,35 @@ const MaintenanceManagement = () => {
     setIsViewProofModalOpen(true); // Open proof modal
   };
 
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      toast.dismiss();
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+      }
+    };
+  }, []);
+
   return (
     <Layout>
       <Header title="Bus Maintenance Management" />
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        key={toastKey}
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
+        theme="light"
+        limit={1}
+        style={{ zIndex: 9999 }}
+        containerId="maintenance-toasts"
+      />
       <div className="options flex flex-col md:flex-row items-center p-4 w-full md:w-9/12 ml-1 space-y-4 md:space-y-0">
         {/* Active/Completed Toggle Buttons */}
         <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 md:space-x-2 w-full sm:w-auto">

@@ -22,6 +22,7 @@ import AlleyModal from "../components/AlleyModal";
 import DispatchModal from "../components/DispatchModal";
 import StaticLocationsData from "../components/StaticLocationsData";
 import { useQuery } from '@tanstack/react-query';
+import { ToastContainer, toast } from 'react-toastify';
 
 interface VehicleAssignmentData {
   number: string;
@@ -64,6 +65,8 @@ const DispatchMonitoring: React.FC = () => {
     useState<VehicleAssignmentData | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [toastKey, setToastKey] = React.useState(0);
+  const toastId = React.useRef<string | number | null>(null);
 
   const { data: vehicleAssignmentsData, isLoading, refetch } = useQuery({
     queryKey: ['vehicleAssignments'],
@@ -284,107 +287,125 @@ const DispatchMonitoring: React.FC = () => {
     }
   };
 
-  const handleAlleyConfirm = (selectedRoute: string) => {
+  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+    // Dismiss all existing toasts
+    toast.dismiss();
+    // Force remount toast container
+    setToastKey(prev => prev + 1);
+    
+    // Show loading toast
+    toastId.current = toast.loading(loadingMessage, {
+      position: "top-right",
+      closeButton: false,
+      closeOnClick: false,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined
+    });
+
+    try {
+      await operation;
+      
+      // Update toast to success
+      toast.update(toastId.current, {
+        render: "Operation completed successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    } catch (error) {
+      // Update toast to error
+      toast.update(toastId.current, {
+        render: error.response?.data?.message || "Operation failed. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+      throw error;
+    }
+  };
+
+  const handleAlleyConfirm = async (selectedRoute: string) => {
     if (!selectedRoute.trim()) {
-      console.error("No route selected.");
+      toast.error("No route selected.");
       return;
     }
 
     if (!modalVehicleData?.vehicle_assignment_id) {
-      console.error("Vehicle assignment ID is missing.");
+      toast.error("Vehicle assignment ID is missing.");
       return;
     }
 
-    // Proceed with the dispatch route confirmation logic
-    console.log(`Route selected: ${selectedRoute}`);
-    console.log(
-      `Vehicle Assignment ID: ${modalVehicleData.vehicle_assignment_id}`
-    );
-
-    refetch();
-
-    // Example of dispatch service logic
-    startAlley({
-      route: selectedRoute,
-      vehicle_assignment_id: modalVehicleData.vehicle_assignment_id,
-    })
-      .then(() => {
-        console.log("Alley started successfully!");
-        // Optionally close the modal here
-        setIsAlleyModalOpen(false);
-      })
-      .catch((error) => {
-        console.error(
-          error.response?.data?.message || "Failed to start alley.",
-          error.response?.data?.errors || {}
-        );
+    const operation = async () => {
+      await startAlley({
+        route: selectedRoute,
+        vehicle_assignment_id: modalVehicleData.vehicle_assignment_id,
       });
+      setIsAlleyModalOpen(false);
+      await refetch();
+    };
+
+    await showToast(operation(), "Starting alley operation...");
   };
 
   const handleDispatchConfirm = async (selectedRoute: string) => {
     if (!selectedRoute.trim()) {
-      console.error("No route selected.");
+      toast.error("No route selected.");
       return;
     }
 
     if (!modalVehicleData?.vehicle_assignment_id) {
-      console.error("Vehicle assignment ID is missing.");
+      toast.error("Vehicle assignment ID is missing.");
       return;
     }
 
-    // Proceed with the dispatch route confirmation logic
-    console.log(`Route selected: ${selectedRoute}`);
-    console.log(
-      `Vehicle Assignment ID: ${modalVehicleData.vehicle_assignment_id}`
-    );
-
-    try {
+    const operation = async () => {
       // End the alley first
       await endAlley(modalVehicleData.dispatch_logs_id);
 
-      // After ending the alley, start the dispatch
+      // Start the dispatch
       const data = {
         route: selectedRoute,
         vehicle_assignment_id: modalVehicleData.vehicle_assignment_id,
       };
       await startDispatch(data);
+      
+      setIsDispatchModalOpen(false);
+      await refetch();
+    };
 
-      refetch();
-
-      console.log("Dispatch started successfully!");
-      // Optionally close the modal here
-      setIsAlleyModalOpen(false);
-    } catch (error) {
-      console.error(
-        error.response?.data?.message ||
-          "Failed to end alley or start dispatch.",
-        error.response?.data?.errors || {}
-      );
-    }
+    await showToast(operation(), "Processing dispatch operation...");
   };
 
-  const handleDeleteDispatchLogs = (vehicle: any) => {
+  const handleDeleteDispatchLogs = async (vehicle: any) => {
     if (!vehicle?.dispatch_logs_id) {
-      console.error("Dispatch log ID not found.");
+      toast.error("Dispatch log ID not found.");
       return;
     }
 
-    // Call delete function
-    deleteRecord(vehicle.dispatch_logs_id)
-      .then(() => {
-        console.log(
-          `Successfully deleted dispatch log for Vehicle ID: ${vehicle.number}`
-        );
-        setShowDeleteConfirmation(false); // Optionally close the modal after deletion
-      })
-      .catch((error) => {
-        console.error(
-          error.response?.data?.message || "Failed to delete dispatch log.",
-          error.response?.data?.errors || {}
-        );
-      });
+    const operation = async () => {
+      await deleteRecord(vehicle.dispatch_logs_id);
+      setShowDeleteConfirmation(false);
+      await refetch();
+    };
 
-    refetch();
+    await showToast(operation(), "Deleting dispatch record...");
   };
 
   const handleCancelDelete = () => {
@@ -412,8 +433,34 @@ const DispatchMonitoring: React.FC = () => {
     };
   };
 
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      toast.dismiss();
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+      }
+    };
+  }, []);
+
   return (
     <Layout>
+      <ToastContainer
+        key={toastKey}
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
+        theme="light"
+        limit={1}
+        style={{ zIndex: 9999 }}
+        containerId="dispatch-monitoring-toasts"
+      />
       <Header title="Dispatch Monitoring" />
       <section className="p-4 flex flex-col items-center">
         <div className="w-full md:w-5/6 flex flex-col h-full">

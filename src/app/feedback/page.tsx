@@ -25,6 +25,8 @@ const FeedbackRecordDisplay = () => {
   const [itemsPerPage] = useState(4);
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [deleteRecordId, setDeleteRecordId] = useState<string | null>(null);
+  const [toastKey, setToastKey] = React.useState(0);
+  const toastId = React.useRef<string | number | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["feedbackRecords"],
@@ -33,22 +35,79 @@ const FeedbackRecordDisplay = () => {
 
   const feedbackRecords: FeedbackRecord[] = data?.data || [];
 
+  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+    // Dismiss all existing toasts
+    toast.dismiss();
+    // Force remount toast container
+    setToastKey(prev => prev + 1);
+    
+    // Show loading toast
+    toastId.current = toast.loading(loadingMessage, {
+      position: "top-right",
+      closeButton: false,
+      closeOnClick: false,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined
+    });
+
+    try {
+      await operation;
+      
+      // Update toast to success
+      toast.update(toastId.current, {
+        render: "Operation completed successfully!",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+    } catch (error) {
+      // Update toast to error
+      toast.update(toastId.current, {
+        render: error.response?.data?.message || "Operation failed. Please try again.",
+        type: "error",
+        isLoading: false,
+        autoClose: 2000,
+        closeButton: false,
+        closeOnClick: false,
+        pauseOnHover: false,
+        draggable: false,
+        onClose: () => {
+          toastId.current = null;
+          setToastKey(prev => prev + 1);
+        }
+      });
+      throw error;
+    }
+  };
+
   const handleDelete = (recordId: string) => {
     setDeleteRecordId(recordId);
     setIsDeletePopupOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteRecordId) {
-      feedbackRecords.splice(
-        feedbackRecords.findIndex(
-          (record) => record.feedback_logs_id === deleteRecordId
-        ),
-        1
-      );
-      setDeleteRecordId(null);
-      setIsDeletePopupOpen(false);
-      toast.success("Feedback record deleted successfully!");
+      const operation = async () => {
+        feedbackRecords.splice(
+          feedbackRecords.findIndex(
+            (record) => record.feedback_logs_id === deleteRecordId
+          ),
+          1
+        );
+        setDeleteRecordId(null);
+        setIsDeletePopupOpen(false);
+      };
+
+      await showToast(operation(), "Deleting feedback record...");
     }
   };
 
@@ -67,6 +126,16 @@ const FeedbackRecordDisplay = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      toast.dismiss();
+      if (toastId.current) {
+        toast.dismiss(toastId.current);
+      }
+    };
+  }, []);
 
   return (
     <Layout>
@@ -116,7 +185,22 @@ const FeedbackRecordDisplay = () => {
         title="Delete Feedback"
         message="Are you sure you want to delete this feedback?"
       />
-      <ToastContainer position="top-right" autoClose={3000} />
+      <ToastContainer
+        key={toastKey}
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
+        theme="light"
+        limit={1}
+        style={{ zIndex: 9999 }}
+        containerId="feedback-toasts"
+      />
     </Layout>
   );
 };
