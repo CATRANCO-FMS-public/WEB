@@ -8,8 +8,8 @@ This app is designed for Operation Managers. It handles CRUD operations for vari
 - Bus management
 - Personnel management
 - Device management
-- Dispatch monitoring
 - Maintenance management
+- Dispatch monitoring
 - Fuel management
 - Feedback management
 
@@ -19,7 +19,7 @@ This app is designed for Operation Managers. It handles CRUD operations for vari
 
 | ![Login Screen](public/login.png) | ![Dashboard](public/dispatch_monitoring.png) |
 |:----------------------------------------:|:----------------------------------------:|
-| *Login screen of the TransitTrack Web Application.* | *Dashboard view for Operation Managers.* |
+| *Login screen of the TransitTrack Web Application.* | *Dispatch Monitoring view for Operation Managers and Dispatchers.* |
 
 ## **Getting Started**
 
@@ -74,7 +74,7 @@ Follow these steps to set up and run the Next.js web application:
 
 6. **Add API Keys**
 
-   - Add the Pusher, Flespi, and Google API keys in the `.env.local` file.
+   - Add the [Pusher](https://pusher.com/), [Flespi](https://flespi.io/), and [Google API](https://console.developers.google.com/) keys in the `.env.local` file.
 
 7. **Run the Application**
 
