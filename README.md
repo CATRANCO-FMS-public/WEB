@@ -1,31 +1,88 @@
-# Step by step integration to next.js and laravel.
-```sh
+# **Welcome to TransitTrack Web Application** 👋
 
-FRONTEND = Next.js
+## **About the Application**
 
-npm install
+This app is designed for Operation Managers. It handles CRUD operations for various management tasks, including:
 
-run cmd and input ipconfig (locate ip address example: 192.168.68.154)
+- Employee management
+- Bus management
+- Personnel management
+- Device management
+- Dispatch monitoring
+- Maintenance management
+- Fuel management
+- Feedback management
 
-locate .env.local edit or add "NEXT_PUBLIC_API_BASE_URL=http://192.168.68.154:8000/api" to your ip address*
+**This application is built using Next.js.**
 
-2 ways
-run npm run dev -- --host=192.168.68.154 --port=3000
+## **Application Preview**
 
-another way
+| ![Login Screen](public/login.png) | ![Dashboard](public/dispatch_monitoring.png) |
+|:----------------------------------------:|:----------------------------------------:|
+| *Login screen of the TransitTrack Web Application.* | *Dashboard view for Operation Managers.* |
 
-locate package.json and edit the following:
-"dev": "next dev --hostname 192.168.68.154 --port 3000",
-"start": "next start --hostname 192.168.68.154 --port 3000",
+## **Getting Started**
 
-BACKEND = Laravel
+Follow these steps to set up and run the Next.js web application:
 
-npm install
+### **Prerequisites**
 
-php artisan env:decrypt --force --key=base64:0rPEg5jGaTu42J4qqE3vTy1MpMsFDy2CxvtDI8eaHrQ=
+- Ensure you have Node.js and npm installed on your machine.
+- Install an IDE like Visual Studio Code.
 
-php artisan migrate
+### **Setup Instructions**
 
-php artisan db:seed
+1. **Open Terminal or Command Prompt**
 
-php artisan serve --host=192.168.68.154 --port=8000 your ip address*
+   - Navigate to the project directory:
+     ```sh
+     cd CATRANCO-FMS-Web
+     ```
+
+2. **Open the Project in Your IDE**
+
+   - Use the following command to open the project in Visual Studio Code:
+     ```sh
+     code .
+     ```
+
+3. **Install Dependencies**
+
+   - Run the following command to install all necessary dependencies:
+     ```sh
+     npm install
+     ```
+
+4. **Download Environment File**
+
+   - Download the example `.env.local` file from [this link](https://drive.google.com/file/d/1E3fMmSvLRHIEaMj0eKpVyGviPXqnoY3C/view?usp=sharing).
+
+5. **Configure IP Address**
+
+   - Find your computer's IP address and edit the `package.json` and `.env.local` files with this IP address. This allows the frontend to communicate with the backend without deploying to a server.
+
+   Example configuration:
+   ```
+   NEXT_PUBLIC_API_BASE_URL=http://192.168.70.191:8000/api
+   NEXT_PUBLIC_STORAGE_URL=http://192.168.70.191:8000/storage
+   ```
+
+   In the `package.json` file, update the following:
+   ```json
+   "dev": "next dev --hostname 192.168.70.191 --port 3000",
+   ```
+
+6. **Add API Keys**
+
+   - Add the Pusher, Flespi, and Google API keys in the `.env.local` file.
+
+7. **Run the Application**
+
+   - Start the development server:
+     ```sh
+     npm run dev
+     ```
+
+## **Additional Resources**
+
+- For further assistance, refer to the official Next.js documentation or reach out to the project maintainers.

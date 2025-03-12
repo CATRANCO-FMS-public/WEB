@@ -3,11 +3,18 @@ import { FaBus } from "react-icons/fa";
 import { createFuelLog } from "@/app/services/fuellogsService";
 import { toast } from "react-toastify";
 
+interface ValidationErrors {
+  date?: string;
+  fuel_type?: string;
+  fuel_price?: string;
+  fuel_liters_quantity?: string;
+  [key: string]: string | undefined;
+}
 
 const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
   const formRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [apiError, setApiError] = useState("");
   const [odometerError, setOdometerError] = useState(null);
   const [formData, setFormData] = useState({
