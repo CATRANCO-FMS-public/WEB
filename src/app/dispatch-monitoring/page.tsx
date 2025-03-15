@@ -287,7 +287,7 @@ const DispatchMonitoring: React.FC = () => {
     }
   };
 
-  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+  const showToast = async (operation: Promise<any>, loadingMessage: string, successMessage: string) => {
     // Dismiss all existing toasts
     toast.dismiss();
     // Force remount toast container
@@ -306,9 +306,9 @@ const DispatchMonitoring: React.FC = () => {
     try {
       await operation;
       
-      // Update toast to success
+      // Update toast to success with specific message
       toast.update(toastId.current, {
-        render: "Operation completed successfully!",
+        render: successMessage,
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -361,7 +361,11 @@ const DispatchMonitoring: React.FC = () => {
       await refetch();
     };
 
-    await showToast(operation(), "Starting alley operation...");
+    await showToast(
+      operation(), 
+      "Starting alley operation...", 
+      "Vehicle successfully moved to alley!"
+    );
   };
 
   const handleDispatchConfirm = async (selectedRoute: string) => {
@@ -390,7 +394,11 @@ const DispatchMonitoring: React.FC = () => {
       await refetch();
     };
 
-    await showToast(operation(), "Processing dispatch operation...");
+    await showToast(
+      operation(), 
+      "Processing dispatch operation...", 
+      "Vehicle successfully dispatched to route!"
+    );
   };
 
   const handleDeleteDispatchLogs = async (vehicle: any) => {
@@ -405,7 +413,11 @@ const DispatchMonitoring: React.FC = () => {
       await refetch();
     };
 
-    await showToast(operation(), "Deleting dispatch record...");
+    await showToast(
+      operation(), 
+      "Deleting dispatch record...", 
+      "Dispatch record successfully deleted!"
+    );
   };
 
   const handleCancelDelete = () => {
