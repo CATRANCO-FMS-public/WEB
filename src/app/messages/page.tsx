@@ -1,14 +1,9 @@
 "use client";
-import Sidebar2 from "../components/Sidebar2";
-import Header from "../components/Header";
+import Sidebar2 from "@/components/reusesables/sidebar-settings";
+import Header from "@/components/reusesables/header";
 import React, { useState, useRef, useEffect } from "react";
 import {
   FaUser,
-  FaArrowLeft,
-  FaEnvelope,
-  FaBell,
-  FaCaretDown,
-  FaPen,
   FaUsers,
   FaBus,
   FaPaperclip,
