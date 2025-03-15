@@ -78,7 +78,7 @@ Follow these steps to set up and run the Next.js web application:
 
    ## **.env.local Setup Preview**
 
-| ![Login Screen](public/env_local.png) |
+| ![Login Screen](public/env.png) |
 |:----------------------------------------:|
 | *Environment file setup for the TransitTrack Web Application.* |
 
