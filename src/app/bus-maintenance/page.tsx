@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import Layout from "../components/Layout";
 import Header from "../components/reusesables/header";
 import MaintenanceAddModal from "../components/bus-maintenance/MaintenanceAddModal";
@@ -7,7 +7,7 @@ import MaintenanceEditModal from "../components/bus-maintenance/MaintenanceEditM
 import CompletionProofModal from "../components/bus-maintenance/CompletionProofModal"; // Component for proof submission
 import ViewProofModal from "../components/bus-maintenance/ViewProofModal"; // Component for viewing proof
 import Pagination from "../components/reusesables/pagination";
-import { FaSearch, FaPlus, FaHistory } from "react-icons/fa";
+import { FaPlus, FaHistory } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import {
   getAllActiveMaintenanceScheduling,
@@ -17,7 +17,6 @@ import {
   deleteMaintenanceScheduling,
   toggleMaintenanceSchedulingStatus,
 } from "../services/maintenanceService";
-import { AxiosError } from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -102,7 +101,7 @@ const MaintenanceManagement = () => {
   const [toastKey, setToastKey] = React.useState(0);
   const toastId = React.useRef<string | number | null>(null);
 
-  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+  const showToast = async (operation: Promise<any>, loadingMessage: string, successMessage: string) => {
     // Dismiss all existing toasts
     toast.dismiss();
     // Force remount toast container
@@ -121,9 +120,9 @@ const MaintenanceManagement = () => {
     try {
       await operation;
       
-      // Update toast to success
+      // Update toast to success with specific message
       toast.update(toastId.current, {
-        render: "Operation completed successfully!",
+        render: successMessage,
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -191,7 +190,7 @@ const MaintenanceManagement = () => {
       setIsViewProofModalOpen(false);
     };
 
-    await showToast(operation(), "Returning to active status...");
+    await showToast(operation(), "Returning to active status...", "Maintenance record returned to active status successfully!");
   };
 
   // Function to open the history modal
@@ -224,7 +223,7 @@ const MaintenanceManagement = () => {
       await refetch();
     };
 
-    await showToast(operation(), "Deleting maintenance record...");
+    await showToast(operation(), "Deleting maintenance record...", "Maintenance record deleted successfully!");
   };
   
   // Add this new function to handle the delete confirmation
@@ -257,7 +256,8 @@ const MaintenanceManagement = () => {
 
     await showToast(
       operation(),
-      id ? "Updating maintenance record..." : "Creating maintenance record..."
+      id ? "Updating maintenance record..." : "Creating maintenance record...",
+      id ? "Maintenance record updated successfully!" : "Maintenance record created successfully!"
     );
   };
 
@@ -268,7 +268,7 @@ const MaintenanceManagement = () => {
       setIsProofModalOpen(false);
     };
 
-    await showToast(operation(), "Submitting completion proof...");
+    await showToast(operation(), "Submitting completion proof...", "Completion proof submitted successfully!");
   };
 
   const handleViewProof = (record: MaintenanceRecord) => {
