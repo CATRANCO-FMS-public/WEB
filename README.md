@@ -76,6 +76,12 @@ Follow these steps to set up and run the Next.js web application:
 
    - Add the [Pusher](https://pusher.com/), [Flespi](https://flespi.io/), and [Google API](https://console.developers.google.com/) keys in the `.env.local` file.
 
+   ## **.env.local Setup Preview**
+
+| ![Login Screen](public/env_local.png) |
+|:----------------------------------------:|
+| *Environment file setup for the TransitTrack Web Application.* |
+
 7. **Run the Application**
 
    - Start the development server:
