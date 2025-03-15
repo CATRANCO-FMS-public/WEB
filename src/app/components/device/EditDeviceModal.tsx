@@ -4,6 +4,7 @@ import {
   getTrackerVehicleMappingById,
   updateTrackerVehicleMapping,
   toggleTrackerVehicleMappingStatus,
+  getAllTrackerVehicleMappings,
 } from "@/app/services/trackerService"; // Import services and toggle service
 import { getAllVehicles } from "@/app/services/vehicleService"; // Fetch available buses dynamically
 
@@ -15,11 +16,13 @@ const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
   const [status, setStatus] = useState("");
   const [busOptions, setBusOptions] = useState([]); // Fetch bus options dynamically
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Fetch bus options and device details dynamically
   useEffect(() => {
     const fetchDetails = async () => {
       try {
+        setLoading(true);
         if (isOpen && deviceId) {
           // Fetch device details
           const deviceData = await getTrackerVehicleMappingById(deviceId);
@@ -29,13 +32,30 @@ const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
           setBusNumber(deviceData.vehicle?.vehicle_id || "");
           setStatus(deviceData.status);
 
-          // Fetch available buses
-          const vehicles = await getAllVehicles();
-          setBusOptions(vehicles);
+          // Fetch all vehicles and existing mappings
+          const [vehicles, mappings] = await Promise.all([
+            getAllVehicles(),
+            getAllTrackerVehicleMappings()
+          ]);
+          
+          // Get array of vehicle IDs that are already assigned
+          const assignedVehicleIds = mappings
+            .filter(mapping => mapping.vehicle_id && mapping.id !== deviceId) // Exclude current device mapping
+            .map(mapping => mapping.vehicle_id.toString());
+          
+          // Filter out vehicles that are already assigned, but include the current vehicle
+          const availableVehicles = vehicles.filter(
+            vehicle => !assignedVehicleIds.includes(vehicle.vehicle_id.toString()) || 
+                      vehicle.vehicle_id.toString() === deviceData.vehicle?.vehicle_id
+          );
+          
+          setBusOptions(availableVehicles);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load device details. Please try again.");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -100,38 +120,38 @@ const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-semibold mb-4">
-          Edit Tracker-to-Vehicle Mapping
+      <div className="bg-white rounded-lg p-6 w-1/3">
+        <h2 className="text-xl font-bold mb-4">
+          Edit Tracker to a Vehicle
         </h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">
-          <label className="block text-gray-700">Device Name</label>
+          <label className="block text-gray-700 font-semibold mb-2">Device Name</label>
           <input
             type="text"
             value={deviceName}
             onChange={(e) => setDeviceName(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700">Tracker Identifier</label>
+          <label className="block text-gray-700 font-semibold mb-2">Tracker Identifier</label>
           <input
             type="text"
             value={trackerIdent}
             onChange={(e) => setTrackerIdent(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700">Bus Number</label>
+          <label className="block text-gray-700 font-semibold mb-2">Bus Number</label>
           <select
             value={busNumber}
             onChange={(e) => setBusNumber(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="" disabled>
-              Select Bus Number
+              {loading ? "Loading vehicles..." : "Select Bus Number"}
             </option>
             {busOptions.map((bus) => (
               <option key={bus.vehicle_id} value={bus.vehicle_id}>
@@ -141,11 +161,11 @@ const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
           </select>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700">Status</label>
+          <label className="block text-gray-700 font-semibold mb-2">Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
@@ -156,16 +176,16 @@ const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {
         </div>
         <div className="flex justify-end space-x-4">
           <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-          <button
             onClick={handleSave}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
           >
             Save
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Cancel
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import Sidebar2 from "../components/reusables/sidebar-settings";
-import Header from "../components/reusables/header";
+import Sidebar2 from "../components/reusesables/sidebar-settings";
+import Header from "../components/reusesables/header";
 import { FaCarCrash, FaCog, FaOilCan, FaTools, FaTruck } from "react-icons/fa";
 import { getAllActiveMaintenanceScheduling } from "../services/maintenanceService";
 

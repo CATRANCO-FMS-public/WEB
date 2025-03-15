@@ -2,13 +2,13 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import Header from "../components/reusables/header";
-import Confirmpopup from "../components/reusables/confirm-popup";
+import Header from "../components/reusesables/header";
+import Confirmpopup from "../components/reusesables/confirm-popup";
 import AddDriverModal from "../components/bus-personnel/AddDriverModal";
 import AddAssistantOfficerModal from "../components/bus-personnel/AddAssistantOfficerModal";
 import EditDriverModal from "../components/bus-personnel/EditDriverModal";
 import EditAssistantOfficerModal from "../components/bus-personnel/EditAssistantOfficerModal";
-import Pagination from "../components/reusables/pagination"; // Import Pagination Component
+import Pagination from "../components/reusesables/pagination"; // Import Pagination Component
 import { FaPlus, FaHistory } from "react-icons/fa";
 import PersonnelRecord from "../components/bus-personnel/PersonnelRecord";
 import { getAllProfiles, deleteProfile } from "@/app/services/userProfile";

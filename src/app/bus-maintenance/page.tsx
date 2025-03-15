@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import Layout from "../components/Layout";
-import Header from "../components/reusables/header";
+import Header from "../components/reusesables/header";
 import MaintenanceAddModal from "../components/bus-maintenance/MaintenanceAddModal";
 import MaintenanceEditModal from "../components/bus-maintenance/MaintenanceEditModal";
 import CompletionProofModal from "../components/bus-maintenance/CompletionProofModal"; // Component for proof submission
 import ViewProofModal from "../components/bus-maintenance/ViewProofModal"; // Component for viewing proof
-import Pagination from "../components/reusables/pagination";
+import Pagination from "../components/reusesables/pagination";
 import { FaSearch, FaPlus, FaHistory } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import {

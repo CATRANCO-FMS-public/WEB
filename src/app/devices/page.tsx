@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import Layout from "../components/Layout";
-import Header from "../components/reusables/header";
-import Confirmpopup from "../components/reusables/confirm-popup";
+import Header from "../components/reusesables/header";
+import Confirmpopup from "../components/reusesables/confirm-popup";
 import AddDeviceModal from "../components/device/AddDeviceModal";
-import Pagination from "../components/reusables/pagination";
+import Pagination from "../components/reusesables/pagination";
 import { FaPlus } from "react-icons/fa";
 import DeviceRecord from "../components/device/DeviceRecord";
 import {
@@ -60,7 +60,7 @@ const DeviceManagement = () => {
     }
   };
 
-  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+  const showToast = async (operation: Promise<any>, loadingMessage: string, successMessage: string) => {
     // Dismiss all existing toasts
     toast.dismiss();
     // Force remount toast container
@@ -81,7 +81,7 @@ const DeviceManagement = () => {
       
       // Update toast to success
       toast.update(toastId.current, {
-        render: "Operation completed successfully!",
+        render: successMessage,
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -119,7 +119,7 @@ const DeviceManagement = () => {
       await refetch();
     };
 
-    await showToast(operation(), "Adding new device...");
+    await showToast(operation(), "Adding new device...", "Device created successfully!");
   };
 
   const handleDelete = (recordId: number) => {
@@ -136,7 +136,7 @@ const DeviceManagement = () => {
         await refetch();
       };
 
-      await showToast(operation(), "Deleting device...");
+      await showToast(operation(), "Deleting device...", "Device deleted successfully!");
     }
   };
 
@@ -156,7 +156,7 @@ const DeviceManagement = () => {
       await refetch();
     };
 
-    await showToast(operation(), "Updating device...");
+    await showToast(operation(), "Updating device...", "Device updated successfully!");
   };
 
   // Cleanup on unmount

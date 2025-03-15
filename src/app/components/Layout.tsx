@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import Sidebar from "./reusables/sidebar";
+import Sidebar from "./reusesables/sidebar";
 
 const Layout = ({ children }) => {
   return (

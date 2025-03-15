@@ -4,23 +4,23 @@ import { useSearchParams } from "next/navigation";
 import { FaBus, FaHistory } from "react-icons/fa";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
-import Header from "@/app/components/Header";
+import Header from "../../components/reusesables/header";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import "react-datepicker/dist/react-datepicker.css";
-import FuelAddModal from "@/app/components/FuelAddModal";
-import FuelEditModal from "@/app/components/FuelEditModal";
-import FuelViewDetailsModal from "@/app/components/FuelViewDetailsModal";
+import FuelAddModal from "../../components/fuel-monitoring/FuelAddModal";
+import FuelEditModal from "../../components/fuel-monitoring/FuelEditModal";
+import FuelViewDetailsModal from "../../components/fuel-monitoring/FuelViewDetailsModal";
 import {
   fetchAllFuelLogs,
   deleteFuelLog,
-} from "@/app/services/fuellogsService";
-import { groupByTimeInterval } from "@/app/helper/fuel-helper";
-import FuelHistoryModal from "@/app/components/FuelHistoryModal";
-import Layout from "@/app/components/Layout";
+} from "../../services/fuellogsService";
+import { groupByTimeInterval } from "../../helper/fuel-helper";
+import FuelHistoryModal from "../../components/fuel-monitoring/FuelHistoryModal";
+import Layout from "../../components/Layout";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Confirmpopup from "@/app/components/Confirmpopup";
+import Confirmpopup from "../../components/reusesables/confirm-popup";
 
 interface FuelLog {
   fuel_logs_id: string;

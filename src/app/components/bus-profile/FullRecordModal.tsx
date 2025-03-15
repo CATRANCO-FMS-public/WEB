@@ -143,16 +143,6 @@ const FullRecordModal: React.FC<FullRecordModalProps> = ({
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="mt-8 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition duration-150 ease-in-out"
-          >
-            Close
-          </button>
-        </div>
       </div>
     </div>
   );

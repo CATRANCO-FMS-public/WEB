@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import Header from "../components/reusables/header";
-import Confirmpopup from "../components/reusables/confirm-popup";
+import Header from "../components/reusesables/header";
+import Confirmpopup from "../components/reusesables/confirm-popup";
 import { FaSearch, FaPlus, FaHistory } from "react-icons/fa";
 import BusRecord from "../components/bus-profile/BusRecord";
 import AddBusRecordModal from "../components/bus-profile/AddBusRecordModal";
 import AssignBusPersonnelModal from "../components/bus-profile/AssignBusPersonnelModal";
-import Pagination from "../components/reusables/pagination";
+import Pagination from "../components/reusesables/pagination";
 import { getAllVehicles, deleteVehicle } from "../services/vehicleService";
 import {
   getAllVehicleAssignments,
@@ -107,13 +107,19 @@ const BusRecordDisplay = () => {
     setIsDeletePopupOpen(true);
   };
 
-  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+  const showToast = async (operation: Promise<any>, actionType: 'add' | 'edit' | 'delete' | 'assign') => {
     // Dismiss all existing toasts
     toast.dismiss();
     // Force remount toast container
     setToastKey(prev => prev + 1);
     
-    // Show loading toast
+    // Show loading toast with appropriate message
+    const loadingMessage = 
+      actionType === 'add' ? "Adding new bus..." :
+      actionType === 'edit' ? "Updating bus record..." :
+      actionType === 'delete' ? "Deleting bus record..." :
+      "Updating bus personnel assignment...";
+    
     toastId.current = toast.loading(loadingMessage, {
       position: "top-right",
       closeButton: false,
@@ -126,9 +132,15 @@ const BusRecordDisplay = () => {
     try {
       await operation;
       
-      // Update toast to success
+      // Update toast to success with appropriate message
+      const successMessage = 
+        actionType === 'add' ? "New bus added successfully!" :
+        actionType === 'edit' ? "Bus record updated successfully!" :
+        actionType === 'delete' ? "Bus record deleted successfully!" :
+        "Bus personnel assignment updated successfully!";
+      
       toast.update(toastId.current, {
-        render: "Operation completed successfully!",
+        render: successMessage,
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -142,9 +154,15 @@ const BusRecordDisplay = () => {
         }
       });
     } catch (error) {
-      // Update toast to error
+      // Update toast to error with appropriate message
+      const errorMessage = 
+        actionType === 'add' ? "Failed to add new bus." :
+        actionType === 'edit' ? "Failed to update bus record." :
+        actionType === 'delete' ? "Failed to delete bus record." :
+        "Failed to update bus personnel assignment.";
+      
       toast.update(toastId.current, {
-        render: "Operation failed. Please try again.",
+        render: errorMessage + " Please try again.",
         type: "error",
         isLoading: false,
         autoClose: 2000,
@@ -172,7 +190,7 @@ const BusRecordDisplay = () => {
         setIsDeletePopupOpen(false);
       };
 
-      await showToast(operation(), "Deleting bus record...");
+      await showToast(operation(), 'delete');
     }
   };
 
@@ -185,11 +203,12 @@ const BusRecordDisplay = () => {
     const operation = async () => {
       queryClient.setQueryData(['vehicles'], (old: any) => [...old, newBus]);
       setSelectedVehicleId(newBus.vehicle_id);
+      setIsAddModalOpen(false);
       setIsAssignPersonnelModalOpen(true);
       await queryClient.invalidateQueries({ queryKey: ['vehicles'] });
     };
 
-    await showToast(operation(), "Adding new bus...");
+    await showToast(operation(), 'add');
   };
 
   const handleEditBus = async (updatedBus) => {
@@ -223,7 +242,7 @@ const BusRecordDisplay = () => {
       setIsEditModalOpen(false);
     };
 
-    await showToast(operation(), "Updating bus record...");
+    await showToast(operation(), 'edit');
   };
 
   const handleAddVehicleAssignment = async (newAssignment) => {
@@ -245,7 +264,7 @@ const BusRecordDisplay = () => {
       setCurrentPage(prev => prev);
     };
 
-    await showToast(operation(), "Updating bus personnel...");
+    await showToast(operation(), 'assign');
   };
 
   const getAssignedProfiles = (vehicleId) => {

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import Header from "../components/reusables/header";
+import Header from "../components/reusesables/header";
 import { FaBus, FaCog, FaUsers } from "react-icons/fa";
 import { getAllVehicles } from "@/app/services/vehicleService";
 import { getAllActiveMaintenanceScheduling } from "../services/maintenanceService";
@@ -10,7 +10,7 @@ import { getAllProfiles } from "@/app/services/userProfile";
 import { MapProvider } from "@/providers/MapProvider";
 import Pusher from "pusher-js";
 import Echo from "laravel-echo";
-import DispatchMap from "../components/reusables/dispatch-map";
+import DispatchMap from "../components/reusesables/dispatch-map";
 import { useQuery } from "@tanstack/react-query";
 
 interface BusData {

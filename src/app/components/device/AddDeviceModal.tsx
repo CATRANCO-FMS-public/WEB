@@ -1,7 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getAllVehicles } from "../../services/vehicleService"; // Service to fetch vehicles
-import { createTrackerVehicleMapping } from "../../services/trackerService"; // Service to create tracker-vehicle mapping
+import { 
+  createTrackerVehicleMapping,
+  getAllTrackerVehicleMappings 
+} from "../../services/trackerService"; // Service to create tracker-vehicle mapping and get existing mappings
 
 const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
   const [deviceName, setDeviceName] = useState("");
@@ -13,21 +16,38 @@ const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
 
   // Fetch available vehicles dynamically
   useEffect(() => {
-    const fetchVehicles = async () => {
+    const fetchVehiclesAndMappings = async () => {
       try {
         setLoading(true);
-        const vehicles = await getAllVehicles();
-        setBusOptions(vehicles);
+        // Fetch both all vehicles and current mappings
+        const [vehicles, mappings] = await Promise.all([
+          getAllVehicles(),
+          getAllTrackerVehicleMappings()
+        ]);
+        
+        // Get array of vehicle IDs that are already assigned
+        const assignedVehicleIds = mappings
+          .filter(mapping => mapping.vehicle_id) // Only consider mappings that have a vehicle_id
+          .map(mapping => mapping.vehicle_id.toString());
+        
+        // Filter out vehicles that are already assigned
+        const availableVehicles = vehicles.filter(
+          vehicle => !assignedVehicleIds.includes(vehicle.vehicle_id.toString())
+        );
+        
+        setBusOptions(availableVehicles);
       } catch (err) {
-        console.error("Error fetching vehicles:", err);
-        setError("Failed to load vehicles. Please try again.");
+        console.error("Error fetching data:", err);
+        setError("Failed to load available vehicles. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchVehicles();
-  }, []);
+    if (isOpen) {
+      fetchVehiclesAndMappings();
+    }
+  }, [isOpen]);
 
   const handleSave = async () => {
     // Check if all required fields are filled
@@ -79,7 +99,7 @@ const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white w-1/3 rounded-lg shadow-lg p-6">
         <h2 className="text-xl font-bold mb-4">
-          Add Tracker-to-Vehicle Mapping
+          Add Tracker to a Vehicle 
         </h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">

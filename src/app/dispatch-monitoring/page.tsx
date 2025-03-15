@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/Layout";
-import Header from "../components/reusables/header";
-import DispatchMap from "../components/reusables/dispatch-map";
+import Header from "../components/reusesables/header";
+import DispatchMap from "../components/reusesables/dispatch-map";
 import Pusher from "pusher-js";
 import Echo from "laravel-echo";
 import { FaBus } from "react-icons/fa";
