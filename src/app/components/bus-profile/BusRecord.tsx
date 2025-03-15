@@ -4,7 +4,7 @@ import {
   getAllVehicleAssignments,
 } from "@/app/services/vehicleAssignService";
 import EditBusRecordModal from "@/app/components/bus-profile/EditBusRecordModal";
-import EditPersonnelModal from "@/app/components/bus-personnel/EditPersonnelModal";
+import EditPersonnelModal from "./EditPersonnelModal";
 import FullRecordModal from "@/app/components/bus-profile/FullRecordModal";
 import { QueryClient } from "@tanstack/react-query";
 

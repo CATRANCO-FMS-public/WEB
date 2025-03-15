@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import Header from "../components/reusables/header";
@@ -96,14 +96,19 @@ const Personnel = () => {
   const [toastKey, setToastKey] = React.useState(0);
   const toastId = React.useRef<string | number | null>(null);
 
-  const showToast = async (operation: Promise<any>) => {
+  const showToast = async (operation: Promise<any>, actionType: 'add' | 'edit' | 'delete') => {
     // Dismiss all existing toasts
     toast.dismiss();
     // Force remount toast container
     setToastKey(prev => prev + 1);
     
-    // Show loading toast
-    toastId.current = toast.loading("Processing request...", {
+    // Show loading toast with appropriate message
+    const loadingMessage = 
+      actionType === 'add' ? "Adding new personnel..." :
+      actionType === 'edit' ? "Updating personnel information..." :
+      "Deleting personnel...";
+    
+    toastId.current = toast.loading(loadingMessage, {
       position: "top-right",
       closeButton: false,
       closeOnClick: false,
@@ -115,9 +120,14 @@ const Personnel = () => {
     try {
       await operation;
       
-      // Update toast to success
+      // Update toast to success with appropriate message
+      const successMessage = 
+        actionType === 'add' ? "New personnel added successfully!" :
+        actionType === 'edit' ? "Personnel information updated successfully!" :
+        "Personnel deleted successfully!";
+      
       toast.update(toastId.current, {
-        render: "New personnel added successfully!",
+        render: successMessage,
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -131,9 +141,14 @@ const Personnel = () => {
         }
       });
     } catch (error) {
-      // Update toast to error
+      // Update toast to error with appropriate message
+      const errorMessage = 
+        actionType === 'add' ? "Failed to add new personnel." :
+        actionType === 'edit' ? "Failed to update personnel information." :
+        "Failed to delete personnel.";
+      
       toast.update(toastId.current, {
-        render: "Failed to add new personnel. Please try again.",
+        render: errorMessage + " Please try again.",
         type: "error",
         isLoading: false,
         autoClose: 2000,
@@ -162,11 +177,11 @@ const Personnel = () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       setDeleteRecordId(null);
       setIsDeletePopupOpen(false);
-      showToast(Promise.resolve());
+      showToast(Promise.resolve(), 'delete');
     },
     onError: (error) => {
       console.error("Error deleting profile:", error);
-      showToast(Promise.reject());
+      showToast(Promise.reject(), 'delete');
     }
   });
 
@@ -176,7 +191,8 @@ const Personnel = () => {
     setIsHistoryModalOpen(true);
   };
 
-  const filteredProfiles = profiles
+  // Filter profiles based on active button and search term, and sort by newest first
+  const filteredProfiles = [...profiles]  // Create a copy to avoid mutating the original data
     .filter(
       (item) =>
         item.profile &&
@@ -190,7 +206,16 @@ const Personnel = () => {
       `${profile.profile.first_name} ${profile.profile.last_name}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
-    );
+    )
+    // Explicitly sort by newest first with better fallback handling
+    .sort((a, b) => {
+      // Use user_profile_id as the primary sort key (assuming higher ID = newer record)
+      const idA = parseInt(a.profile.user_profile_id, 10);
+      const idB = parseInt(b.profile.user_profile_id, 10);
+      
+      // Sort in descending order (highest ID first)
+      return idB - idA;
+    });
 
   const totalPages = Math.ceil(filteredProfiles.length / itemsPerPage);
   const paginatedProfiles = filteredProfiles.slice(
@@ -216,7 +241,7 @@ const Personnel = () => {
       await queryClient.invalidateQueries({ queryKey: ['profiles'] });
     };
 
-    await showToast(operation());
+    await showToast(operation(), 'add');
   };
 
   const handleSaveEdit = (updatedProfile) => {
@@ -231,7 +256,7 @@ const Personnel = () => {
     setIsEditModalOpen(false);
     // Invalidate and refetch
     queryClient.invalidateQueries({ queryKey: ['profiles'] });
-    showToast(Promise.resolve());
+    showToast(Promise.resolve(), 'edit');
   };
 
   const handleViewBioData = (profileId) => {

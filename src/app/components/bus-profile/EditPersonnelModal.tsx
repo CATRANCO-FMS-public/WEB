@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { getOffDutyUserProfiles } from "@/app/services/userProfile";
-import { getAllVehicles } from "@/app/services/vehicleService";
-import { updateVehicleAssignment } from "@/app/services/vehicleAssignService";
+import { getOffDutyUserProfiles } from "../../services/userProfile";
+import { getAllVehicles } from "../../services/vehicleService";
+import { updateVehicleAssignment } from "../../services/vehicleAssignService";
 
 interface Profile {
   user_profile_id: string;
