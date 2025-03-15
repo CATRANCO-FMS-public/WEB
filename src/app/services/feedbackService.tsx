@@ -1,5 +1,6 @@
 // feedbackService.js
 import axios from "axios";
+import { getToken } from "./authService";
 
 // Define the base API URL
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -22,10 +23,10 @@ export interface FeedbackRecord {
   created_at: string;
 }
 
-// Add interceptors for token handling
+// Add interceptors for token handling - updated to use cookies
 api.interceptors.request.use(
   async (config) => {
-    const token = localStorage.getItem("authToken");
+    const token = getToken(); // Use getToken() from authService instead of localStorage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

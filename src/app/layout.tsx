@@ -6,6 +6,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 import QueryProvider from "./components/extras/QueryProvider";
+import { getToken } from "./services/authService";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const authToken = localStorage.getItem("authToken");
+    const authToken = getToken();
     const isAuth = !!authToken;
     setIsAuthenticated(isAuth);
 

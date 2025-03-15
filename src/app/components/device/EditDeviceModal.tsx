@@ -5,7 +5,7 @@ import {
   updateTrackerVehicleMapping,
   toggleTrackerVehicleMappingStatus,
   getAllTrackerVehicleMappings,
-} from "@/app/services/trackerService"; // Import services and toggle service
+} from "@/app/services/deviceService"; // Import services and toggle service
 import { getAllVehicles } from "@/app/services/vehicleService"; // Fetch available buses dynamically
 
 const EditDeviceModal = ({ isOpen, onClose, deviceId, onSave }) => {

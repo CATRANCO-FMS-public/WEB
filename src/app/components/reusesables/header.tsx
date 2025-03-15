@@ -8,7 +8,7 @@ import {
   FaBars,
 } from "react-icons/fa";
 import Link from "next/link";
-import { logout } from "../../services/authService";
+import { logout, getToken } from "../../services/authService";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -61,7 +61,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
       // Hide the dropdown immediately when logout is clicked
       setDropdownVisible(false);
       
-      const token = localStorage.getItem("authToken");
+      const token = getToken();
 
       if (!token) {
         toast.error("No active session found");
@@ -73,7 +73,6 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
       
       try {
         await logout();
-        localStorage.removeItem("authToken");
         
         toast.success("Successfully logged out!");
 

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getToken } from "./authService";
 
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -12,7 +13,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("authToken");
+    const token = getToken();
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },

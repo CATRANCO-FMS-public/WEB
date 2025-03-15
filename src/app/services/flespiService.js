@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getToken } from './authService';
 
 // Base API URL (update this with your backend URL)
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL
@@ -12,10 +13,10 @@ const api = axios.create({
   },
 });
 
-// Add interceptors for token handling (if authentication is required)
+// Add interceptors for token handling - updated to use cookies
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = getToken(); // Use getToken() from authService instead of localStorage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

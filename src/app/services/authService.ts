@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 // Define the base API URL
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -12,10 +13,10 @@ const api = axios.create({
   },
 });
 
-// Add interceptors for token handling
+// Add interceptors for token handling - updated to use cookies
 api.interceptors.request.use(
   async (config) => {
-    const token = localStorage.getItem('authToken');
+    const token = getToken(); // Use the getToken function instead of localStorage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -23,6 +24,40 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
+// Get token from cookies
+export const getToken = () => {
+  return Cookies.get('authToken');
+};
+
+// Set token to cookies
+export const setToken = (token) => {
+  Cookies.set('authToken', token, { 
+    expires: 7, 
+    secure: process.env.NODE_ENV === 'production', 
+    sameSite: 'strict' 
+  });
+};
+
+// Remove token from cookies
+export const removeToken = () => {
+  Cookies.remove('authToken');
+};
+
+// Set user profile
+export const setUserProfile = (profile) => {
+  Cookies.set('userProfile', JSON.stringify(profile), {
+    expires: 7,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
+};
+
+// Get user profile
+export const getUserProfile = () => {
+  const profile = Cookies.get('userProfile');
+  return profile ? JSON.parse(profile) : null;
+};
 
 // Authentication Services
 
@@ -32,7 +67,7 @@ export const login = async (credentials) => {
     const response = await api.post('/user/login', credentials);
     const { token } = response.data;
     if (token) {
-      localStorage.setItem('authToken', token);
+      setToken(token);
     }
     return response.data;
   } catch (error) {
@@ -111,17 +146,10 @@ export const updateOwnAccount = async (accountData) => {
   }
 };
 
-
-
-// Logout
-export const logout = async () => {
-  try {
-    await api.post('/user/logout');
-    localStorage.removeItem('authToken');
-  } catch (error) {
-    console.error('Logout error:', error);
-    throw error.response ? error.response.data : error;
-  }
+// Logout - clean up cookies
+export const logout = () => {
+  removeToken();
+  Cookies.remove('userProfile');
 };
 
 // Deactivate User Account

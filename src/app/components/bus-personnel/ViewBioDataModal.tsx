@@ -1,4 +1,3 @@
-// components/ViewBioDataModal.jsx
 import React, { useState } from "react";
 
 const ViewBioDataModal = ({ isOpen, onClose, profile }) => {

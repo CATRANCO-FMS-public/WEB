@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getToken } from "./authService";
 
 // Define the base API URL
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -12,10 +13,10 @@ const api = axios.create({
   },
 });
 
-// Add interceptors for token handling
+// Add interceptors for token handling - updated to use cookies
 api.interceptors.request.use(
   async (config) => {
-    const token = localStorage.getItem("authToken");
+    const token = getToken(); // Use getToken() from authService instead of localStorage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -125,7 +126,7 @@ export const getOffDutyUserProfiles = async () => {
     const response = await api.get(`/user/admin/profiles/user_profiles/off_duty`);
     return response.data;
   } catch (error) {
-    console.error(`Get profiles by status error: ${status}`, error);
+    console.error(`Get profiles by status error:`, error);
     throw error.response ? error.response.data : error;
   }
 };

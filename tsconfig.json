@@ -29,6 +29,6 @@
     },
     "target": "ES2017"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "src/app"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/services/vehicleService.js", "src/app/services/fuellogsService.js", "sr, "src/app/services/flespiService.js"c/app/services/userProfile.js", "src/app/services/vehicleAssignService.js", "src/app/services/deviceService.js", "src/app/services/dispatchService.js"],
+  "exclude": ["node_modules"]
 }

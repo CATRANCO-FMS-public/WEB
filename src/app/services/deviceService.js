@@ -1,50 +1,118 @@
-import axios from 'axios';
+import axios from "axios";
+import { getToken } from "./authService";
 
-const API_BASE_URL = "https://your-api-url.com/api/devices"; // Replace with your actual API base URL
+// Define the base API URL
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// Fetch all devices
-export const getAllDevices = async () => {
+// Create an Axios instance with default headers
+const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  });
+
+// Add request interceptor to include the token in the headers
+api.interceptors.request.use(
+  async (config) => {
+    const token = getToken(); // Use getToken() from authService instead of localStorage
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+/**
+ * Fetch all tracker-to-vehicle mappings.
+ * @returns {Promise<Object[]>} - List of mappings.
+ */
+export const getAllTrackerVehicleMappings = async () => {
   try {
-    const response = await axios.get(API_BASE_URL);
-    return response.data;
+    const response = await api.get("/user/admin/tracker-vehicle/all");
+    return response.data.data; // Adjust structure based on backend response
   } catch (error) {
-    console.error("Error fetching devices:", error);
-    throw error;
+    console.error("Error fetching tracker-to-vehicle mappings:", error);
+    throw error.response?.data || error;
   }
 };
 
-// Delete a device by ID
-export const deleteDevice = async (deviceId) => {
+/**
+ * Fetch a specific tracker-to-vehicle mapping by ID.
+ * @param {string} id - The ID of the mapping to fetch.
+ * @returns {Promise<Object>} - Tracker-to-vehicle mapping data.
+ */
+export const getTrackerVehicleMappingById = async (id) => {
   try {
-    await axios.delete(`${API_BASE_URL}/${deviceId}`);
+    const response = await api.get(`/user/admin/tracker-vehicle/${id}`);
+    return response.data.data; // Adjust structure based on backend response
   } catch (error) {
-    console.error("Error deleting device:", error);
-    throw error;
+    console.error("Error fetching tracker-to-vehicle mapping by ID:", error);
+    throw error.response?.data || error;
   }
 };
 
-// Add a new device with bus number
-export const addDevice = async (deviceData) => {
+/**
+ * Create a new tracker-to-vehicle mapping.
+ * @param {Object} mappingData - The data for the new mapping.
+ * @returns {Promise<Object>} - The created mapping.
+ */
+export const createTrackerVehicleMapping = async (mappingData) => {
   try {
-    // Include bus number in the data when adding a new device
-    const { name, serial_number, bus_number, status } = deviceData; // Ensure bus_number is passed
-    const response = await axios.post(API_BASE_URL, { name, serial_number, bus_number, status });
-    return response.data;
+    const response = await api.post("/user/admin/tracker-vehicle/create", mappingData);
+    return response.data.data; // Adjust structure based on backend response
   } catch (error) {
-    console.error("Error adding device:", error);
-    throw error;
+    console.error("Error creating tracker-to-vehicle mapping:", error);
+    throw error.response?.data || error;
   }
 };
 
-// Update an existing device with bus number
-export const updateDevice = async (deviceId, updatedData) => {
+/**
+ * Update an existing tracker-to-vehicle mapping.
+ * @param {string} id - The ID of the mapping to update.
+ * @param {Object} mappingData - The updated mapping data.
+ * @returns {Promise<Object>} - The updated mapping.
+ */
+export const updateTrackerVehicleMapping = async (id, mappingData) => {
   try {
-    // Include bus number in the updated data when updating the device
-    const { name, serial_number, bus_number, status } = updatedData; // Ensure bus_number is passed
-    const response = await axios.put(`${API_BASE_URL}/${deviceId}`, { name, serial_number, bus_number, status });
-    return response.data;
+    const response = await api.patch(`/user/admin/tracker-vehicle/update/${id}`, mappingData);
+    return response.data.data; // Adjust structure based on backend response
   } catch (error) {
-    console.error("Error updating device:", error);
-    throw error;
+    console.error("Error updating tracker-to-vehicle mapping:", error);
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Delete a tracker-to-vehicle mapping.
+ * @param {string} id - The ID of the mapping to delete.
+ * @returns {Promise<Object>} - The result of the deletion.
+ */
+export const deleteTrackerVehicleMapping = async (id) => {
+  try {
+    const response = await api.delete(`/user/admin/tracker-vehicle/delete/${id}`);
+    return response.data; // Adjust structure based on backend response
+  } catch (error) {
+    console.error("Error deleting tracker-to-vehicle mapping:", error);
+    throw error.response?.data || error;
+  }
+};
+
+/**
+ * Toggle the status of a tracker-to-vehicle mapping.
+ * @param {string} id - The ID of the mapping.
+ * @returns {Promise<Object>} - The updated mapping with toggled status.
+ */
+export const toggleTrackerVehicleMappingStatus = async (id) => {
+  try {
+    const response = await api.patch(`/user/admin/tracker-vehicle/toggle_status/${id}`);
+    return response.data.data; // Adjust structure based on backend response
+  } catch (error) {
+    console.error("Error toggling tracker-to-vehicle mapping status:", error);
+    throw error.response?.data || error;
   }
 };

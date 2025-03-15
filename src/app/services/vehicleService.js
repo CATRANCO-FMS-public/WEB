@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getToken } from "./authService";
 
 // Define the base API URL for vehicles
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -15,7 +16,7 @@ const api = axios.create({
 // Add request interceptor to include the token in the headers
 api.interceptors.request.use(
   async (config) => {
-    const token = localStorage.getItem("authToken"); // Use localStorage for token
+    const token = getToken(); // Use getToken() from authService instead of localStorage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { login, getProfile } from "../services/authService";
+import { login, getProfile, getToken } from "../services/authService";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -35,11 +35,11 @@ export default function AuthPage() {
   const router = useRouter();
 
   React.useEffect(() => {
-    const authToken = localStorage.getItem("authToken");
+    const authToken = getToken();
     if (authToken) {
       router.replace("/dashboard"); // Redirect immediately if token exists
     }
-  }, []);
+  }, [router]);
 
   // Handle form field changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getToken } from "./authService";
 
 // Define the base API URL
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -12,15 +13,14 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to include the token in the headers
+// Add request interceptor to include the token in the headers - updated to use cookies
 api.interceptors.request.use(
   async (config) => {
     if (typeof window !== "undefined") {
       // Make sure this is running in the browser
-      const token = localStorage.getItem("authToken"); // Fetch token from localStorage
-      console.log("Token being sent with request:", token); // Log the token for debugging
+      const token = getToken(); // Use getToken() from authService instead of localStorage
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`; // Fixed the syntax
+        config.headers.Authorization = `Bearer ${token}`;
       }
     }
     return config;
@@ -53,10 +53,10 @@ export const fetchAllFuelLogs = async () => {
  */
 export const fetchFuelLogById = async (id) => {
   try {
-    const response = await api.get(`/user/admin/fuel-logs/${id}`); // Fixed string concatenation
+    const response = await api.get(`/user/admin/fuel-logs/${id}`);
     return response.data;
   } catch (error) {
-    console.error(`Error fetching fuel log with ID ${id}:`, error); // Fixed error message formatting
+    console.error(`Error fetching fuel log with ID ${id}:`, error);
     throw error.response ? error.response.data : error;
   }
 };
@@ -107,7 +107,7 @@ export const updateFuelLog = async (id, fuelLogData) => {
     console.log("Update response:", response.data); // Debug log
     return response.data;
   } catch (error) {
-    console.error(`Error updating fuel log with ID ${id}:`, error); // Improved error logging
+    console.error(`Error updating fuel log with ID ${id}:`, error);
     throw error.response?.data || { message: "Unknown error occurred" };
   }
 };
@@ -118,10 +118,10 @@ export const updateFuelLog = async (id, fuelLogData) => {
  */
 export const deleteFuelLog = async (id) => {
   try {
-    const response = await api.delete(`/user/admin/fuel-logs/delete/${id}`); // Fixed string concatenation
+    const response = await api.delete(`/user/admin/fuel-logs/delete/${id}`);
     return response.data;
   } catch (error) {
-    console.error(`Error deleting fuel log with ID ${id}:`, error); // Fixed error message formatting
+    console.error(`Error deleting fuel log with ID ${id}:`, error);
     throw error.response ? error.response.data : error;
   }
 };

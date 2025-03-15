@@ -11,7 +11,7 @@ import DeviceRecord from "../components/device/DeviceRecord";
 import {
   getAllTrackerVehicleMappings,
   deleteTrackerVehicleMapping,
-} from "@/app/services/trackerService";
+} from "@/app/services/deviceService";
 import EditDeviceModal from "../components/device/EditDeviceModal";
 import { useQuery } from "@tanstack/react-query";
 import { ToastContainer, toast } from "react-toastify";

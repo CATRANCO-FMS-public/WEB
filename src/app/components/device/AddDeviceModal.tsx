@@ -4,7 +4,7 @@ import { getAllVehicles } from "../../services/vehicleService"; // Service to fe
 import { 
   createTrackerVehicleMapping,
   getAllTrackerVehicleMappings 
-} from "../../services/trackerService"; // Service to create tracker-vehicle mapping and get existing mappings
+} from "../../services/deviceService"; // Service to create tracker-vehicle mapping and get existing mappings
 
 const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
   const [deviceName, setDeviceName] = useState("");
