@@ -75,7 +75,7 @@ export default function Sidebar() {
 
             <button
                 onClick={toggleSidebar}
-                className="absolute -right-3 top-20 bg-violet-700 text-white p-1 rounded-full shadow-md hover:bg-violet-800 transition-colors z-10"
+                className="absolute -right-3 top-20 bg-violet-700 text-white p-1 rounded-full shadow-md hover:bg-violet-800 transition-colors z-10 hidden md:block"
             >
                 {minimized ? <FaChevronRight size={16} /> : <FaChevronLeft size={16} />}
             </button>

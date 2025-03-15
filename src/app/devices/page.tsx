@@ -174,17 +174,17 @@ const DeviceManagement = () => {
       <section className="flex flex-row h-screen bg-white">
         <div className="w-full flex flex-col bg-slate-200">
           <Header title="Device Management" />
-          <div className="content flex flex-col flex-1 p-6 -mt-2">
-            <div className="options flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-[590px] -ml-1 mb-6">
+          <div className="content flex flex-col flex-1 p-3 overflow-y-auto">
+            <div className="options flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-4 sm:items-center mb-4">
               <input
                 type="text"
                 placeholder="Search Trackers"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+                className="px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
               />
               <button
-                className="flex items-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50 w-full sm:w-auto"
+                className="flex items-center justify-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50"
                 onClick={() => setIsAddModalOpen(true)}
               >
                 <FaPlus className="mr-2" /> Add New
@@ -199,7 +199,7 @@ const DeviceManagement = () => {
               <div className="text-center text-gray-500 mt-10">No devices found.</div>
             ) : (
               <>
-                <div className="records grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="records grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {paginatedDevices.map((device) => (
                     <DeviceRecord
                       key={device.id}
@@ -214,7 +214,7 @@ const DeviceManagement = () => {
                   ))}
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-4 p-2">
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

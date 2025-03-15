@@ -30,9 +30,9 @@ const extractHistoryFromProfiles = (profiles) => {
 
 const ButtonGroup = ({ activeButton, onClick, onViewHistory }) => {
   return (
-    <div className="flex flex-col md:flex-row space-x-0 md:space-x-10 m-5 ml-5 mb-2">
+    <div className="flex flex-col space-y-2 m-3 md:flex-row md:space-y-0 md:space-x-4 lg:space-x-10">
       <button
-        className={`px-4 py-2 border-2 rounded-md transition-colors duration-300 ease-in-out w-full md:w-auto ${
+        className={`px-4 py-2 border-2 rounded-md transition-colors duration-300 ease-in-out ${
           activeButton === "drivers"
             ? "bg-blue-500 text-white"
             : "bg-gray-200 text-gray-800"
@@ -42,7 +42,7 @@ const ButtonGroup = ({ activeButton, onClick, onViewHistory }) => {
         Drivers
       </button>
       <button
-        className={`px-4 py-2 border-2 rounded-md transition-colors duration-300 ease-in-out w-full md:w-auto ${
+        className={`px-4 py-2 border-2 rounded-md transition-colors duration-300 ease-in-out ${
           activeButton === "conductors"
             ? "bg-blue-500 text-white"
             : "bg-gray-200 text-gray-800"
@@ -52,7 +52,7 @@ const ButtonGroup = ({ activeButton, onClick, onViewHistory }) => {
         Passenger Assistant Officer
       </button>
       <button
-        className={`px-4 py-2 border-2 rounded-md transition-colors duration-300 ease-in-out w-full md:w-auto ${
+        className={`px-4 py-2 border-2 rounded-md transition-colors duration-300 ease-in-out ${
           activeButton === "dispatchers"
             ? "bg-blue-500 text-white"
             : "bg-gray-200 text-gray-800"
@@ -62,7 +62,7 @@ const ButtonGroup = ({ activeButton, onClick, onViewHistory }) => {
         Dispatchers
       </button>
       <button
-        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center w-full md:w-auto mt-2 md:mt-0"
+        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center justify-center"
         onClick={onViewHistory}
       >
         <FaHistory className="mr-2" />
@@ -297,27 +297,27 @@ const Personnel = () => {
       <section className="flex flex-row h-screen bg-white">
         <div className="w-full flex flex-col bg-slate-200">
           <Header title="Bus Personnel Management" />
-          <div className="content flex flex-col flex-1">
+          <div className="content flex flex-col flex-1 overflow-y-auto">
             <ButtonGroup
               activeButton={activeButton}
               onClick={setActiveButton}
               onViewHistory={openHistoryModal}
             />
-            <div className="options flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 p-4 w-full sm:w-9/12 ml-1">
+            <div className="options flex flex-col space-y-3 p-3 sm:flex-row sm:space-y-0 sm:space-x-3 sm:items-center">
               <input
                 type="text"
                 placeholder={`Find ${activeButton}`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+                className="px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
                 style={{ height: "42px" }}
               />
               <button
-                className="flex items-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50 w-full sm:w-auto"
+                className="flex items-center justify-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50"
                 onClick={() => setIsAddModalOpen(true)}
                 style={{ height: "42px" }}
               >
-                <FaPlus size={22} className="mr-2 " />
+                <FaPlus size={22} className="mr-2" />
                 Add New
               </button>
             </div>
@@ -330,7 +330,7 @@ const Personnel = () => {
               <div className="text-center text-gray-500 mt-10">No personnel records found.</div>
             ) : (
               <div className="records flex flex-col h-full">
-                <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 ml-5">
+                <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-3">
                   {paginatedProfiles.map((profile) => (
                     <PersonnelRecord
                       key={profile.profile.user_profile_id}
@@ -348,7 +348,7 @@ const Personnel = () => {
                     />
                   ))}
                 </div>
-                <div className="pagination-container mb-[46%]">
+                <div className="pagination-container p-4 mb-4">
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

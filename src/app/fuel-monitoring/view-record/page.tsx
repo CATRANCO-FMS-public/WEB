@@ -369,23 +369,23 @@ const ViewRecord = () => {
         title="Confirm Delete"
         message="Are you sure you want to delete this fuel log? This action cannot be undone."
       />
-      <div className="flex flex-col md:flex-row bg-gray-100 ">
-        <div className="flex-1 flex flex-col bg-slate-200 pb-10">
+      <div className="flex flex-col md:flex-row bg-gray-100">
+        <div className="flex-1 flex flex-col bg-slate-200 pb-6">
           <Header title="Fuel Monitoring" />
           <button 
             onClick={handleBack}
-            className="flex items-center text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium ml-6 mt-3 mb-2 bg-transparent border-none outline-none"
+            className="flex items-center text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium ml-4 mt-2 mb-2 bg-transparent border-none outline-none"
           >
             <FaArrowLeft className="mr-2" /> 
             <span>Back</span>
           </button>
-          <section className="p-4 flex flex-col items-center md:items-start ml-2 ">
+          <section className="p-2 sm:p-4 flex flex-col items-center md:items-start">
             {/* Bus Info Section */}
-            <div className="flex items-center w-full md:w-5/6 mb-4">
-              <FaBus size={24} className="mr-2" />
-              <span className="text-lg font-bold">BUS {selectedBus}</span>
+            <div className="flex items-center w-full mb-3">
+              <FaBus size={20} className="mr-2" />
+              <span className="text-base sm:text-lg font-bold">BUS {selectedBus}</span>
               <span
-                className={`ml-2 ${
+                className={`ml-2 text-sm sm:text-base ${
                   busStatus === "Maintenance"
                     ? "text-red-500"
                     : "text-green-500"
@@ -396,12 +396,12 @@ const ViewRecord = () => {
             </div>
 
             {/* Top Buttons Section */}
-            <div className="top-btns flex flex-col md:flex-row items-center justify-between w-full max-w-full">
-              <div className="time-intervals flex flex-col md:flex-row md:flex-wrap md:space-x-3 mb-4 md:mb-0 w-full md:w-auto">
+            <div className="top-btns flex flex-col w-full">
+              <div className="time-intervals grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 w-full">
                 {["daily", "weekly", "monthly", "yearly"].map((interval) => (
                   <button
                     key={interval}
-                    className={`px-4 py-2 rounded mb-2 md:mb-0 w-full md:w-auto ${
+                    className={`px-3 py-1.5 rounded text-sm sm:text-base ${
                       timeInterval === interval
                         ? "bg-blue-500 text-white"
                         : "bg-gray-500 text-white"
@@ -414,18 +414,16 @@ const ViewRecord = () => {
               </div>
               <button
                 onClick={handlePrint}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 w-full md:w-auto"
+                className="px-3 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 text-sm sm:text-base"
               >
                 Print Chart as PDF
               </button>
             </div>
 
             {/* Chart Section */}
-            <div className="relative chart-container w-full md:w-6/7 h-[50vh] md:h-[70vh] bg-white p-4 rounded-lg shadow-lg mt-4 max-w-full">
-              {" "}
-              {/* Adjusted height for responsiveness */}
+            <div className="relative chart-container w-full h-[300px] sm:h-[400px] md:h-[500px] bg-white p-2 sm:p-4 rounded-lg shadow-lg mt-3">
               <div className="absolute inset-0 flex justify-center items-center opacity-10 z-0">
-                <span className="text-6xl font-bold text-gray-500">
+                <span className="text-3xl sm:text-4xl md:text-6xl font-bold text-gray-500">
                   {selectedBus ? `Bus ${selectedBus}` : "Loading..."}
                 </span>
               </div>
@@ -433,23 +431,22 @@ const ViewRecord = () => {
                 data={data}
                 options={{ ...options, responsive: true }}
                 className="relative z-10"
-              />{" "}
-              {/* Added responsive: true to options */}
+              />
             </div>
 
             {/* Table Section */}
-            <div className="table-container w-full md:w-6/7 mt-4 bg-white p-4 rounded-lg shadow-lg overflow-x-auto max-w-full">
-              <table className="w-full text-left">
+            <div className="table-container w-full mt-4 bg-white p-2 sm:p-4 rounded-lg shadow-lg overflow-x-auto">
+              <table className="w-full text-left text-sm sm:text-base">
                 <thead>
                   <tr>
-                    <th className="py-2 px-4">Date</th>
-                    <th className="py-2 px-4">Odometer KM</th>
-                    <th className="py-2 px-4">Distance Travelled</th>
-                    <th className="py-2 px-4">Fuel Type</th>
-                    <th className="py-2 px-4">Fuel Price</th>
-                    <th className="py-2 px-4">Fuel Quantity</th>
-                    <th className="py-2 px-4">Total Amount (PHP)</th>
-                    <th className="py-2 px-4">Actions</th>
+                    <th className="py-2 px-2 sm:px-4">Date</th>
+                    <th className="py-2 px-2 sm:px-4">Odometer KM</th>
+                    <th className="py-2 px-2 sm:px-4">Distance</th>
+                    <th className="py-2 px-2 sm:px-4">Fuel Type</th>
+                    <th className="py-2 px-2 sm:px-4">Fuel Price</th>
+                    <th className="py-2 px-2 sm:px-4">Quantity</th>
+                    <th className="py-2 px-2 sm:px-4">Total (PHP)</th>
+                    <th className="py-2 px-2 sm:px-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -461,79 +458,74 @@ const ViewRecord = () => {
                     )
                     .map((entry) => (
                       <tr key={entry.fuel_logs_id} className="border-t">
-                        <td className="py-2 px-4">
-                          {new Date(entry.purchase_date).toLocaleDateString()}{" "}
-                          {/* Formatting to show only the date */}
+                        <td className="py-2 px-2 sm:px-4">
+                          {new Date(entry.purchase_date).toLocaleDateString()}
                         </td>
-                        <td className="py-2 px-4">{entry.odometer_km} KM</td>
-                        <td className="py-2 px-4">{entry.distance_traveled} KM</td>
-                        <td className="py-2 px-4">{entry.fuel_type}</td>
-                        <td className="py-2 px-4">{entry.fuel_price}</td>
-                        <td className="py-2 px-4">
+                        <td className="py-2 px-2 sm:px-4">{entry.odometer_km} KM</td>
+                        <td className="py-2 px-2 sm:px-4">{entry.distance_traveled} KM</td>
+                        <td className="py-2 px-2 sm:px-4">{entry.fuel_type}</td>
+                        <td className="py-2 px-2 sm:px-4">{entry.fuel_price}</td>
+                        <td className="py-2 px-2 sm:px-4">
                           {entry.fuel_liters_quantity} L
                         </td>
-                        <td className="py-2 px-4">{entry.total_expense} PHP</td>
-                        <td className="py-2 px-4 text-right flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2">
-                          <button
-                            onClick={() => handleViewDetails(entry)}
-                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 w-full md:w-auto"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleEdit(entry)}
-                            className="px-3 py-1 bg-blue-500 text-white rounded w-full md:w-auto"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => confirmDelete(entry.fuel_logs_id)}
-                            className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 w-full md:w-auto"
-                          >
-                            Remove
-                          </button>
+                        <td className="py-2 px-2 sm:px-4">{entry.total_expense} PHP</td>
+                        <td className="py-2 px-2 sm:px-4">
+                          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                            <button
+                              onClick={() => handleViewDetails(entry)}
+                              className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs sm:text-sm"
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleEdit(entry)}
+                              className="px-2 py-1 bg-blue-500 text-white rounded text-xs sm:text-sm"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => confirmDelete(entry.fuel_logs_id)}
+                              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs sm:text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                 </tbody>
               </table>
             </div>
+            
             {/* Pagination and Actions */}
-            <div className="mt-4 flex flex-col md:flex-row justify-between w-full max-w-full">
-              <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full md:w-auto">
+            <div className="mt-4 flex flex-col sm:flex-row justify-between w-full gap-3">
+              <div className="flex gap-2">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-2 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed w-full md:w-auto"
+                  className="px-3 py-1.5 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed text-sm"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-2 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed w-full md:w-auto"
+                  className="px-3 py-1.5 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed text-sm"
                 >
                   Next
                 </button>
               </div>
-              <div className="right-btn flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-3 mt-4 md:mt-0 w-full md:w-auto">
+              <div className="right-btn flex gap-2">
                 <button
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center w-full md:w-auto"
+                  className="px-3 py-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center text-sm"
                   onClick={handleOpenHistoryModal}
                 >
-                  <FaHistory className="mr-2" />
+                  <FaHistory className="mr-1" />
                   View History
                 </button>
-                {isHistoryModalOpen && (
-                  <FuelHistoryModal
-                    isOpen={isHistoryModalOpen}
-                    onClose={handleCloseHistoryModal}
-                    history={historyData}
-                  />
-                )}
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded w-full md:w-auto"
+                  className="px-3 py-1.5 bg-blue-500 text-white rounded text-sm"
                 >
                   Add New Record
                 </button>
@@ -544,7 +536,7 @@ const ViewRecord = () => {
 
         {isHistoryModalOpen && (
           <FuelHistoryModal
-            isOpen={isHistoryModalOpen} // Add the 'isOpen' prop here
+            isOpen={isHistoryModalOpen}
             onClose={handleCloseHistoryModal}
             history={historyData}
           />

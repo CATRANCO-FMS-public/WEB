@@ -117,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
         <div className="icons flex flex-row">
           <div className="md:hidden bg-white h-6 mt-0.5 mr-3">
             <button onClick={toggleBurgerMenu} className="md:hidden">
-              <FaBars size={25} className="text-violet-700 cursor-pointer" />
+              <FaCaretDown size={25} className="text-violet-700 cursor-pointer" />
             </button>
           </div>
           <div className="md:flex md:flex-row md:border-r-2  md:border-gray-400 md:mr-4 md:text-violet-700 hidden">

@@ -305,9 +305,9 @@ const MaintenanceManagement = () => {
         style={{ zIndex: 9999 }}
         containerId="maintenance-toasts"
       />
-      <div className="options flex flex-col md:flex-row items-center p-4 w-full md:w-9/12 ml-1 space-y-4 md:space-y-0">
+      <div className="options flex flex-col p-3 space-y-4">
         {/* Active/Completed Toggle Buttons */}
-        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 md:space-x-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <button
             className={`px-4 py-2 rounded-md ${
               viewType === "active"
@@ -330,27 +330,27 @@ const MaintenanceManagement = () => {
           </button>
         </div>
 
-        {/* Search Input */}
-        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full ml-2">
+        {/* Search Input and Action Buttons */}
+        <div className="flex flex-col space-y-3">
           <input
             type="text"
             placeholder="Find maintenance records"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+            className="px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           {/* Add and View History Buttons */}
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-4 sm:mt-0 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
             <button
-              className="flex items-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50 w-full sm:w-auto"
+              className="flex items-center justify-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50"
               onClick={() => setIsAddModalOpen(true)}
             >
               <FaPlus size={20} className="mr-2" />
               Add New
             </button>
             <button
-              className="flex items-center px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 w-full sm:w-auto"
+              className="flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
               onClick={handleOpenHistoryModal}
             >
               <FaHistory className="mr-2" />
@@ -358,14 +358,6 @@ const MaintenanceManagement = () => {
             </button>
           </div>
         </div>
-        {/* Render the modal if isHistoryModalOpen is true */}
-        {isHistoryModalOpen && (
-          <MaintenanceHistoryModal
-            isOpen={isHistoryModalOpen} // Correct prop for modal visibility
-            onClose={handleCloseHistoryModal} // Correct function to close the modal
-            history={historyData}
-          />
-        )}
       </div>
 
       {isLoading ? (
@@ -376,12 +368,12 @@ const MaintenanceManagement = () => {
         <div className="text-center text-gray-500 mt-10">No maintenance records found.</div>
       ) : (
         <>
-          <div className="records flex flex-col h-full">
-            <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 ml-5">
+          <div className="records flex flex-col h-full overflow-y-auto">
+            <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-3">
               {currentRecords.map((record) => (
                 <div
                   key={record.maintenance_scheduling_id}
-                  className="record-box-container mr-3 bg-white  border-gray-200 rounded-lg border-2 flex flex-col p-4 break-words text-sm relatives"
+                  className="record-box-container bg-white border-gray-200 rounded-lg border-2 flex flex-col p-4 break-words text-sm"
                 >
                   <table className="w-full border-collapse mb-1 table-auto">
                     <tbody>
@@ -444,17 +436,17 @@ const MaintenanceManagement = () => {
                       </tr>
                     </tbody>
                   </table>
-                  <div className="left-4 right-4 flex justify-between space-x-2">
+                  <div className="flex justify-between space-x-2">
                     {record.maintenance_status === "completed" ? (
                       <>
                         <button
-                          className="px-3 py-1.5 mt-3 bg-blue-500 text-white rounded hover:bg-blue-600 flex-1 sm:px-1 sm:py-2"
+                          className="px-3 py-1.5 mt-3 bg-blue-500 text-white rounded hover:bg-blue-600 flex-1"
                           onClick={() => handleViewProof(record)}
                         >
                           View Proof
                         </button>
                         <button
-                          className="px-3 py-1.5 mt-3 bg-red-500 text-white rounded hover:bg-red-600 flex-1 sm:px-1 sm:py-2"
+                          className="px-3 py-1.5 mt-3 bg-red-500 text-white rounded hover:bg-red-600 flex-1"
                           onClick={() => handleDeleteClick(record.maintenance_scheduling_id)}
                         >
                           Delete
@@ -463,7 +455,7 @@ const MaintenanceManagement = () => {
                     ) : (
                       <>
                         <button
-                          className="px-3 py-1.5 mt-3 bg-blue-500 text-white rounded hover:bg-blue-600 flex-1 sm:px-1 sm:py-2"
+                          className="px-3 py-1.5 mt-3 bg-blue-500 text-white rounded hover:bg-blue-600 flex-1"
                           onClick={() => {
                             setCurrentRecord(record);
                             setIsEditModalOpen(true);
@@ -472,7 +464,7 @@ const MaintenanceManagement = () => {
                           Edit
                         </button>
                         <button
-                          className="px-3 py-1.5 mt-3 bg-red-500 text-white rounded hover:bg-red-600 flex-1 sm:px-1 sm:py-2"
+                          className="px-3 py-1.5 mt-3 bg-red-500 text-white rounded hover:bg-red-600 flex-1"
                           onClick={() => handleDeleteClick(record.maintenance_scheduling_id)}
                         >
                           Remove
@@ -485,7 +477,7 @@ const MaintenanceManagement = () => {
             </div>
           </div>
 
-          <div className="pagination-container mb-[46%]">
+          <div className="pagination-container p-4 mb-4">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
