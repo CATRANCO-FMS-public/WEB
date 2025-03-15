@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { GoogleMap, Marker, Polyline, InfoWindow } from "@react-google-maps/api";
-import StaticLocationsData from "./StaticLocationsData";
+import StaticLocationsData from "../extras/StaticLocationsData";
 
 interface BusData {
   number: string;

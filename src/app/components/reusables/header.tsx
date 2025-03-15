@@ -8,7 +8,7 @@ import {
   FaBars,
 } from "react-icons/fa";
 import Link from "next/link";
-import { logout } from "../services/authService";
+import { logout } from "../../services/authService";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -58,6 +58,9 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
   const handleLogout = async () => {
     try {
+      // Hide the dropdown immediately when logout is clicked
+      setDropdownVisible(false);
+      
       const token = localStorage.getItem("authToken");
 
       if (!token) {
@@ -136,7 +139,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
             {dropdownVisible && (
               <div
                 ref={dropdownRef}
-                className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-10 w-36 text-base bg-white border border-gray-300 rounded shadow-lg z-50 mr-10"
+                className="absolute top-0 right-0 mt-10 w-36 text-base bg-white border border-gray-300 rounded shadow-lg z-50"
               >
                 <Link
                   href="/editprofile"

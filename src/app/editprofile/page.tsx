@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Sidebar2 from "../components/Sidebar2";
-import Header from "../components/Header";
+import Sidebar2 from "../components/reusables/sidebar-settings";
+import Header from "../components/reusables/header";
 import {
   getProfile,
   updateAccount,
   updateOwnAccount,
   getOwnProfile,
 } from "../services/authService";
+import { useQuery } from "@tanstack/react-query";
 
 const EditProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"account" | "profile">("account");
@@ -27,51 +28,61 @@ const EditProfile: React.FC = () => {
   const [accountSettings, setAccountSettings] = useState({
     username: "",
     email: "",
-    oldPassword: "", // Add old password field
+    oldPassword: "",
     newPassword: "",
   });
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const { 
+    data: accountData,
+    isLoading: isAccountLoading,
+    isError: isAccountError,
+    refetch: refetchAccount
+  } = useQuery({
+    queryKey: ["account"],
+    queryFn: getProfile,
+  });
+
+  const {
+    data: profileData,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+    refetch: refetchProfile
+  } = useQuery({
+    queryKey: ["profile"],
+    queryFn: getOwnProfile,
+  });
 
   useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        setLoading(true);
+    if (accountData) {
+      setAccountSettings({
+        username: accountData.username,
+        email: accountData.email,
+        oldPassword: "",
+        newPassword: "",
+      });
+    }
+  }, [accountData]);
 
-        const accountData = await getProfile();
-        const profileData = await getOwnProfile();
-
-        setAccountSettings({
-          username: accountData.username,
-          email: accountData.email,
-          oldPassword: "",
-          newPassword: "",
-        });
-
-        setProfileSettings({
-          lastName: profileData.profile.last_name || "",
-          firstName: profileData.profile.first_name || "",
-          middleInitial: profileData.profile.middle_initial || "",
-          address: profileData.profile.address || "",
-          dateOfBirth: profileData.profile.date_of_birth || "",
-          sex: profileData.profile.sex || "",
-          contactNumber: profileData.profile.contact_number || "",
-          contactPerson: profileData.profile.contact_person || "",
-          contactPersonNumber: profileData.profile.contact_person_number || "",
-        });
-
-        setSelectedImage(profileData.profile.user_profile_image || null);
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-        alert("Failed to load profile data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfileData();
-  }, []);
+  useEffect(() => {
+    if (profileData?.profile) {
+      setProfileSettings({
+        lastName: profileData.profile.last_name || "",
+        firstName: profileData.profile.first_name || "",
+        middleInitial: profileData.profile.middle_initial || "",
+        address: profileData.profile.address || "",
+        dateOfBirth: profileData.profile.date_of_birth || "",
+        sex: profileData.profile.sex || "",
+        contactNumber: profileData.profile.contact_number || "",
+        contactPerson: profileData.profile.contact_person || "",
+        contactPersonNumber: profileData.profile.contact_person_number || "",
+      });
+      setSelectedImage(profileData.profile.user_profile_image || null);
+    }
+  }, [profileData]);
+  
+  const loading = isAccountLoading || isProfileLoading;
 
   const handleProfileChange = (field: string, value: string) => {
     setProfileSettings({ ...profileSettings, [field]: value });
@@ -85,7 +96,6 @@ const EditProfile: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        setLoading(true);
         const formData = new FormData();
         formData.append("user_profile_image", file);
 
@@ -93,11 +103,10 @@ const EditProfile: React.FC = () => {
 
         setSelectedImage(URL.createObjectURL(file));
         alert("Profile image updated successfully!");
+        refetchProfile();
       } catch (error) {
         console.error("Error updating profile image:", error);
         alert("Failed to update profile image.");
-      } finally {
-        setLoading(false);
       }
     }
   };
@@ -105,7 +114,6 @@ const EditProfile: React.FC = () => {
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      setLoading(true);
       const payload = {
         last_name: profileSettings.lastName,
         first_name: profileSettings.firstName,
@@ -120,6 +128,7 @@ const EditProfile: React.FC = () => {
 
       await updateOwnAccount(payload);
       alert("Profile settings updated successfully!");
+      refetchProfile();
     } catch (error: any) {
       console.error("Error updating profile settings:", error);
       if (error.response && error.response.data) {
@@ -129,21 +138,17 @@ const EditProfile: React.FC = () => {
       } else {
         alert("An unknown error occurred.");
       }
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleUpdateEmail = async () => {
     try {
-      setLoading(true);
       await updateAccount({ email: accountSettings.email });
       alert("Email updated successfully!");
+      refetchAccount();
     } catch (error) {
       console.error("Error updating email:", error);
       alert("Failed to update email.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -154,17 +159,15 @@ const EditProfile: React.FC = () => {
     }
 
     try {
-      setLoading(true);
       await updateAccount({
-        old_password: accountSettings.oldPassword, // Include oldPassword in the payload
+        old_password: accountSettings.oldPassword,
         password: accountSettings.newPassword,
       });
       alert("Password updated successfully!");
+      refetchAccount();
     } catch (error) {
       console.error("Error updating password:", error);
       alert("Failed to update password. Please ensure the old password is correct.");
-    } finally {
-      setLoading(false);
     }
   };
 

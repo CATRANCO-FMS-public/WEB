@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { getAllVehicles } from "../services/vehicleService"; // Service to fetch vehicles
-import { createTrackerVehicleMapping } from "../services/trackerService"; // Service to create tracker-vehicle mapping
+import { getAllVehicles } from "../../services/vehicleService"; // Service to fetch vehicles
+import { createTrackerVehicleMapping } from "../../services/trackerService"; // Service to create tracker-vehicle mapping
 
 const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
   const [deviceName, setDeviceName] = useState("");

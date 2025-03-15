@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import Layout from "../components/Layout";
-import Header from "../components/Header";
-import MaintenanceAddModal from "../components/MaintenanceAddModal";
-import MaintenanceEditModal from "../components/MaintenanceEditModal";
-import CompletionProofModal from "../components/CompletionProofModal"; // Component for proof submission
-import ViewProofModal from "../components/ViewProofModal"; // Component for viewing proof
-import Pagination from "../components/Pagination";
+import Header from "../components/reusables/header";
+import MaintenanceAddModal from "../components/bus-maintenance/MaintenanceAddModal";
+import MaintenanceEditModal from "../components/bus-maintenance/MaintenanceEditModal";
+import CompletionProofModal from "../components/bus-maintenance/CompletionProofModal"; // Component for proof submission
+import ViewProofModal from "../components/bus-maintenance/ViewProofModal"; // Component for viewing proof
+import Pagination from "../components/reusables/pagination";
 import { FaSearch, FaPlus, FaHistory } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -21,7 +21,7 @@ import { AxiosError } from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import MaintenanceHistoryModal from "../components/MaintenanceHistoryModal";
+import MaintenanceHistoryModal from "../components/bus-maintenance/MaintenanceHistoryModal";
 
 // Define interface for MaintenanceRecord
 interface MaintenanceRecord {

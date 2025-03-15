@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
-import AssignBusPersonnelModal from "../components/AssignBusPersonnelModal";
-import { createVehicle } from "../services/vehicleService"; // Import the service
+import AssignBusPersonnelModal from "./AssignBusPersonnelModal";
+import { createVehicle } from "../../services/vehicleService"; // Import the service
 
 interface AddBusRecordModalProps {
   onClose: () => void;

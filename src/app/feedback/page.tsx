@@ -3,11 +3,11 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import Header from "../components/Header";
-import Confirmpopup from "../components/Confirmpopup";
-import FeedbackRecord from "../components/FeedbackRecord";
+import Header from "../components/reusables/header";
+import Confirmpopup from "../components/reusables/confirm-popup";
+import FeedbackRecord from "../components/feedback/FeedbackRecord";
 import { fetchAllFuelLogs } from "../services/feedbackService";
-import Pagination from "../components/Pagination";
+import Pagination from "../components/reusables/pagination";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

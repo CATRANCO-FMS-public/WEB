@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Layout from "../components/Layout";
-import Header from "../components/Header";
-import DispatchMap from "../components/DispatchMap";
+import Header from "../components/reusables/header";
+import DispatchMap from "../components/reusables/dispatch-map";
 import Pusher from "pusher-js";
 import Echo from "laravel-echo";
 import { FaBus } from "react-icons/fa";
@@ -18,9 +18,9 @@ import {
   endDispatch,
 } from "../services/dispatchService";
 import { MapProvider } from "@/providers/MapProvider";
-import AlleyModal from "../components/AlleyModal";
-import DispatchModal from "../components/DispatchModal";
-import StaticLocationsData from "../components/StaticLocationsData";
+import AlleyModal from "../components/dispatch_monitoring/AlleyModal";
+import DispatchModal from "../components/dispatch_monitoring/DispatchModal";
+import StaticLocationsData from "../components/extras/StaticLocationsData";
 import { useQuery } from '@tanstack/react-query';
 import { ToastContainer, toast } from 'react-toastify';
 

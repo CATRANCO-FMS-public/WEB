@@ -3,9 +3,9 @@ import { useRouter } from "next/navigation";
 import {
   getAllVehicleAssignments,
 } from "@/app/services/vehicleAssignService";
-import EditBusRecordModal from "@/app/components/EditBusRecordModal";
-import EditPersonnelModal from "@/app/components/EditPersonnelModal";
-import FullRecordModal from "@/app/components/FullRecordModal";
+import EditBusRecordModal from "@/app/components/bus-profile/EditBusRecordModal";
+import EditPersonnelModal from "@/app/components/bus-personnel/EditPersonnelModal";
+import FullRecordModal from "@/app/components/bus-profile/FullRecordModal";
 import { QueryClient } from "@tanstack/react-query";
 
 interface BusBoxProps {

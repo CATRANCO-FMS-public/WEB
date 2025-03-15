@@ -2,17 +2,17 @@
 
 import React, { useState } from "react";
 import Layout from "../components/Layout";
-import Header from "../components/Header";
-import Confirmpopup from "../components/Confirmpopup";
-import AddDeviceModal from "../components/AddDeviceModal";
-import Pagination from "../components/Pagination";
+import Header from "../components/reusables/header";
+import Confirmpopup from "../components/reusables/confirm-popup";
+import AddDeviceModal from "../components/device/AddDeviceModal";
+import Pagination from "../components/reusables/pagination";
 import { FaPlus } from "react-icons/fa";
-import DeviceRecord from "../components/DeviceRecord";
+import DeviceRecord from "../components/device/DeviceRecord";
 import {
   getAllTrackerVehicleMappings,
   deleteTrackerVehicleMapping,
 } from "@/app/services/trackerService";
-import EditDeviceModal from "../components/EditDeviceModal";
+import EditDeviceModal from "../components/device/EditDeviceModal";
 import { useQuery } from "@tanstack/react-query";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
