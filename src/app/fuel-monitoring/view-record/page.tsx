@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { FaBus, FaHistory } from "react-icons/fa";
+import { useSearchParams, useRouter } from "next/navigation";
+import { FaBus, FaHistory, FaArrowLeft } from "react-icons/fa";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
 import Header from "../../components/reusesables/header";
@@ -36,6 +36,7 @@ interface FuelLog {
 
 const ViewRecord = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const busNumber = searchParams.get("bus") || "001";
   const busStatus = searchParams.get("status") || "On Operation";
 
@@ -150,7 +151,7 @@ const ViewRecord = () => {
     },
   };
 
-  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+  const showToast = async (operation: Promise<any>, loadingMessage: string, successMessage: string) => {
     // Dismiss all existing toasts
     toast.dismiss();
     // Force remount toast container
@@ -171,7 +172,7 @@ const ViewRecord = () => {
       
       // Update toast to success
       toast.update(toastId.current, {
-        render: "Operation completed successfully!",
+        render: successMessage,
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -213,7 +214,11 @@ const ViewRecord = () => {
       await fetchLogs();
     };
 
-    await showToast(operation(), "Deleting fuel log...");
+    await showToast(
+      operation(), 
+      "Deleting fuel log...", 
+      "Fuel log successfully deleted!"
+    );
   };
 
   const confirmDelete = (fuelLogId) => {
@@ -241,7 +246,11 @@ const ViewRecord = () => {
       setIsEditModalOpen(false);
     };
 
-    await showToast(operation(), "Updating fuel log...");
+    await showToast(
+      operation(), 
+      "Updating fuel log...", 
+      "Fuel log successfully updated!"
+    );
   };
 
   const handleViewDetails = (record) => {
@@ -258,7 +267,11 @@ const ViewRecord = () => {
       setIsAddModalOpen(false);
     };
 
-    await showToast(operation(), "Adding new fuel log...");
+    await showToast(
+      operation(), 
+      "Adding new fuel log...", 
+      "New fuel log successfully added!"
+    );
   };
 
   const closeAddModal = () => {
@@ -309,7 +322,15 @@ const ViewRecord = () => {
       pdf.save(`view-record-bus-${selectedBus}.pdf`);
     };
 
-    await showToast(operation(), "Generating PDF...");
+    await showToast(
+      operation(), 
+      "Generating PDF...", 
+      "PDF successfully generated and saved!"
+    );
+  };
+
+  const handleBack = () => {
+    router.back();
   };
 
   // Cleanup on unmount
@@ -351,6 +372,13 @@ const ViewRecord = () => {
       <div className="flex flex-col md:flex-row bg-gray-100 ">
         <div className="flex-1 flex flex-col bg-slate-200 pb-10">
           <Header title="Fuel Monitoring" />
+          <button 
+            onClick={handleBack}
+            className="flex items-center text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium ml-6 mt-3 mb-2 bg-transparent border-none outline-none"
+          >
+            <FaArrowLeft className="mr-2" /> 
+            <span>Back</span>
+          </button>
           <section className="p-4 flex flex-col items-center md:items-start ml-2 ">
             {/* Bus Info Section */}
             <div className="flex items-center w-full md:w-5/6 mb-4">

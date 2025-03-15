@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaBus } from "react-icons/fa";
 import { updateFuelLog } from "@/app/services/fuellogsService";
-import { toast } from "react-toastify";
 
 const FuelEditModal = ({
   selectedBus,
@@ -109,10 +108,6 @@ const FuelEditModal = ({
         onClose(); // Close the modal
       } catch (error) {
         console.error("Failed to update fuel log:", error);
-        toast.error(
-          error?.response?.data?.message ||
-            "An error occurred while updating the fuel log. Please try again."
-        );
       } finally {
         setIsSubmitting(false);
       }

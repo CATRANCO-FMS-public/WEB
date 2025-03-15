@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaBus } from "react-icons/fa";
 import { createFuelLog } from "@/app/services/fuellogsService";
-import { toast } from "react-toastify";
 
 interface ValidationErrors {
   date?: string;
@@ -90,7 +89,6 @@ const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
         console.log("Fuel log created:", response);
         onAdd(response);
         onClose();
-        toast.success("New fuel log added successfully!");
       } catch (error) {
         console.error("Failed to create fuel log:", error);
         

@@ -35,7 +35,7 @@ const FeedbackRecordDisplay = () => {
 
   const feedbackRecords: FeedbackRecord[] = data?.data || [];
 
-  const showToast = async (operation: Promise<any>, loadingMessage: string) => {
+  const showToast = async (operation: Promise<any>, loadingMessage: string, successMessage: string) => {
     // Dismiss all existing toasts
     toast.dismiss();
     // Force remount toast container
@@ -56,7 +56,7 @@ const FeedbackRecordDisplay = () => {
       
       // Update toast to success
       toast.update(toastId.current, {
-        render: "Operation completed successfully!",
+        render: successMessage,
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -107,7 +107,11 @@ const FeedbackRecordDisplay = () => {
         setIsDeletePopupOpen(false);
       };
 
-      await showToast(operation(), "Deleting feedback record...");
+      await showToast(
+        operation(), 
+        "Deleting feedback record...", 
+        "Feedback record successfully deleted!"
+      );
     }
   };
 
