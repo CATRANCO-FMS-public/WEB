@@ -3,8 +3,8 @@ import Sidebar from "@/app/components/Sidebar";
 import Header from "@/app/components/Header";
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getAllProfiles } from "@/app/services/userProfile";
-import { getVehicleAssignmentById, updateVehicleAssignment } from "@/app/services/vehicleAssignService";
+import { getAllProfiles } from "@/services/userProfile";
+import { getVehicleAssignmentById, updateVehicleAssignment } from "@/services/vehicleAssignService";
 
 const UpdatePersonnel = () => {
   const searchParams = useSearchParams();

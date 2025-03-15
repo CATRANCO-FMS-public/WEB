@@ -8,7 +8,7 @@ import {
   FaBars,
 } from "react-icons/fa";
 import Link from "next/link";
-import { logout, getToken } from "../../services/authService";
+import { logout, getToken } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

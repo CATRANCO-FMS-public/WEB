@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import Layout from "../components/Layout";
-import Header from "../components/reusesables/header";
-import Confirmpopup from "../components/reusesables/confirm-popup";
-import AddDeviceModal from "../components/device/AddDeviceModal";
-import Pagination from "../components/reusesables/pagination";
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import Confirmpopup from "@/components/reusesables/confirm-popup";
+import AddDeviceModal from "@/components/device/AddDeviceModal";
+import Pagination from "@/components/reusesables/pagination";
 import { FaPlus } from "react-icons/fa";
-import DeviceRecord from "../components/device/DeviceRecord";
+import DeviceRecord from "@/components/device/DeviceRecord";
 import {
   getAllTrackerVehicleMappings,
   deleteTrackerVehicleMapping,
-} from "@/app/services/deviceService";
-import EditDeviceModal from "../components/device/EditDeviceModal";
+} from "@/services/deviceService";
+import EditDeviceModal from "@/components/device/EditDeviceModal";
 import { useQuery } from "@tanstack/react-query";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

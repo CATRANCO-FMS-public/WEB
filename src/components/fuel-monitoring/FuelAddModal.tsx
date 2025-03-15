@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaBus } from "react-icons/fa";
-import { updateFuelLog } from "@/app/services/fuellogsService";
+import { createFuelLog } from "@/services/fuellogsService";
 
-const FuelEditModal = ({
-  selectedBus,
-  selectedFuelLog,
-  onClose = () => {},
-  onUpdate = () => {},
-}) => {
+interface ValidationErrors {
+  date?: string;
+  fuel_type?: string;
+  fuel_price?: string;
+  fuel_liters_quantity?: string;
+  [key: string]: string | undefined;
+}
+
+const FuelAddModal = ({ selectedBus, onClose, onAdd }) => {
   const formRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [apiError, setApiError] = useState("");
+  const [odometerError, setOdometerError] = useState(null);
   const [formData, setFormData] = useState({
     date: "",
     odometerKM: "",
@@ -17,27 +23,9 @@ const FuelEditModal = ({
     fuelPrice: "",
     fuel_liters_quantity: "",
     total_expense: "",
-    odometerProof: selectedFuelLog?.odometer_proof || null, // Retain previous proof if available
-    fuelReceiptProof: selectedFuelLog?.fuel_receipt_proof || null, // Retain previous proof if available
+    odometerProof: null,
+    fuelReceiptProof: null,
   });
-
-  useEffect(() => {
-    if (selectedFuelLog && selectedBus) {
-      if (selectedFuelLog.fuel_logs_id) {
-        setFormData({
-          date: selectedFuelLog.purchase_date?.split(" ")[0] || "",
-          odometerKM: selectedFuelLog.odometer_km || "",
-          fuelType: selectedFuelLog.fuel_type || "",
-          fuelPrice: selectedFuelLog.fuel_price?.replace(/[^0-9.]/g, "") || "",
-          fuel_liters_quantity: selectedFuelLog.fuel_liters_quantity || "",
-          total_expense:
-            selectedFuelLog.total_expense?.replace(/[^0-9.]/g, "") || "",
-          odometerProof: selectedFuelLog.odometer_proof || null, // Set existing proof
-          fuelReceiptProof: selectedFuelLog.fuel_receipt_proof || null, // Set existing proof
-        });
-      }
-    }
-  }, [selectedFuelLog, selectedBus]);
 
   useEffect(() => {
     if (formData.fuelPrice && formData.fuel_liters_quantity) {
@@ -60,19 +48,19 @@ const FuelEditModal = ({
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
-    const file = files[0]; // Get the first file from the input
-
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: file, // Update state with the selected file
-      }));
-    }
+    const file = files[0];
+    setFormData((prev) => ({
+      ...prev,
+      [name]: file,
+    }));
   };
 
   const handleSubmit = async () => {
     if (formRef.current && formRef.current.reportValidity()) {
       setIsSubmitting(true);
+      setValidationErrors({});
+      setApiError("");
+      setOdometerError(null);
       const formDataToSubmit = new FormData();
       formDataToSubmit.append("purchase_date", formData.date);
       formDataToSubmit.append("odometer_km", formData.odometerKM);
@@ -83,15 +71,13 @@ const FuelEditModal = ({
       formDataToSubmit.append("fuel_price", formData.fuelPrice);
       formDataToSubmit.append("fuel_type", formData.fuelType);
       formDataToSubmit.append("vehicle_id", selectedBus);
-
-      // Append the files only if they exist and are valid
-      if (formData.odometerProof instanceof File) {
+      if (formData.odometerProof) {
         formDataToSubmit.append(
           "odometer_distance_proof",
           formData.odometerProof
         );
       }
-      if (formData.fuelReceiptProof instanceof File) {
+      if (formData.fuelReceiptProof) {
         formDataToSubmit.append(
           "fuel_receipt_proof",
           formData.fuelReceiptProof
@@ -99,19 +85,50 @@ const FuelEditModal = ({
       }
 
       try {
-        const response = await updateFuelLog(
-          selectedFuelLog.fuel_logs_id,
-          formDataToSubmit
-        );
-        console.log("Fuel log updated:", response);
-        onUpdate(); // Refresh parent component after update
-        onClose(); // Close the modal
+        const response = await createFuelLog(formDataToSubmit);
+        console.log("Fuel log created:", response);
+        onAdd(response);
+        onClose();
       } catch (error) {
-        console.error("Failed to update fuel log:", error);
+        console.error("Failed to create fuel log:", error);
+        
+        if (error?.response?.data?.previous_odometer) {
+          setOdometerError({
+            message: error.response.data.message,
+            previous: error.response.data.previous_odometer,
+            current: error.response.data.current_odometer
+          });
+        } else {
+          setApiError(
+            error?.response?.data?.message || 
+            error.message || 
+            "An error occurred while adding the fuel log"
+          );
+        }
       } finally {
         setIsSubmitting(false);
       }
     }
+  };
+
+  // Check if all required fields are filled
+  const areAllFieldsFilled = () => {
+    return (
+      formData.date &&
+      formData.odometerKM &&
+      formData.fuelType &&
+      formData.fuelPrice &&
+      formData.fuel_liters_quantity
+    );
+  };
+
+  // Helper function to show validation error
+  const getErrorMessage = (fieldName) => {
+    return validationErrors[fieldName] ? (
+      <span className="text-red-500 text-sm mt-1">
+        {validationErrors[fieldName]}
+      </span>
+    ) : null;
   };
 
   return (
@@ -121,6 +138,13 @@ const FuelEditModal = ({
           <FaBus size={32} className="mr-3" />
           <span className="text-xl font-bold">BUS {selectedBus}</span>
         </div>
+        
+        {apiError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{apiError}</span>
+          </div>
+        )}
+
         <form ref={formRef} className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
             {/* Left Section */}
@@ -131,9 +155,13 @@ const FuelEditModal = ({
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
-                className="w-full border border-gray-300 p-2 rounded"
+                className={`w-full border ${
+                  validationErrors.date ? 'border-red-500' : 'border-gray-300'
+                } p-2 rounded`}
                 required
               />
+              {getErrorMessage('date')}
+
               <label className="block font-medium mt-4">
                 Odometer (KM)
               </label>
@@ -142,9 +170,22 @@ const FuelEditModal = ({
                 name="odometerKM"
                 value={formData.odometerKM}
                 onChange={handleChange}
-                className="w-full border border-gray-300 p-2 rounded"
+                className={`w-full border ${
+                  odometerError ? 'border-red-500' : 'border-gray-300'
+                } p-2 rounded`}
                 required
               />
+              {odometerError && (
+                <div className="text-red-500 text-sm mt-1">
+                  <p>{odometerError.message}</p>
+                  <p className="mt-1">
+                    Previous reading: {odometerError.previous} km
+                    <br />
+                    Your input: {odometerError.current} km
+                  </p>
+                </div>
+              )}
+
               <label className="block font-medium mt-4">Fuel Type</label>
               <select
                 name="fuelType"
@@ -158,6 +199,8 @@ const FuelEditModal = ({
                 <option value="premium">Premium</option>
                 <option value="diesel">Diesel</option>
               </select>
+              {getErrorMessage('fuel_type')}
+
               <label className="block font-medium mt-4">Fuel Price (PHP)</label>
               <input
                 type="number"
@@ -167,6 +210,8 @@ const FuelEditModal = ({
                 className="w-full border border-gray-300 p-2 rounded"
                 required
               />
+              {getErrorMessage('fuel_price')}
+
               <label className="block font-medium mt-4">
                 Fuel Quantity (L)
               </label>
@@ -178,6 +223,7 @@ const FuelEditModal = ({
                 className="w-full border border-gray-300 p-2 rounded"
                 required
               />
+              {getErrorMessage('fuel_liters_quantity')}
             </div>
             {/* Right Section */}
             <div>
@@ -215,10 +261,10 @@ const FuelEditModal = ({
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="px-5 py-2 bg-blue-500 text-white rounded"
+              disabled={isSubmitting || !areAllFieldsFilled()}
+              className="px-5 py-2 bg-blue-500 text-white rounded disabled:bg-blue-300 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Updating..." : "Update"}
+              {isSubmitting ? "Adding..." : "Add"}
             </button>
             <button
               type="button"
@@ -235,4 +281,4 @@ const FuelEditModal = ({
   );
 };
 
-export default FuelEditModal;
+export default FuelAddModal;

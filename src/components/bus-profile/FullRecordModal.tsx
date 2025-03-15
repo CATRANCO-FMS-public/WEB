@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { getVehicleById } from "../../services/vehicleService"; // Import the service
-import { getVehicleAssignmentById } from "../../services/vehicleAssignService"; // Import the assignment service
+import { getVehicleById } from "@/services/vehicleService"; // Import the service
+import { getVehicleAssignmentById } from "@/services/vehicleAssignService"; // Import the assignment service
 
 interface FullRecordModalProps {
   isOpen: boolean;

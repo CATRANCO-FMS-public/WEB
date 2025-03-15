@@ -1,6 +1,6 @@
-import { getAllVehicles } from "@/app/services/vehicleService";
-import { getAllMaintenanceScheduling } from "@/app/services/maintenanceService";
-import { getAllProfiles } from "@/app/services/userProfile";
+import { getAllVehicles } from "@/services/vehicleService";
+import { getAllMaintenanceScheduling } from "@/services/maintenanceService";
+import { getAllProfiles } from "@/services/userProfile";
 
 export const fetchVehiclesData = async () => {
   const vehicles = await getAllVehicles();

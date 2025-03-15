@@ -5,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
-import QueryProvider from "./components/extras/QueryProvider";
-import { getToken } from "./services/authService";
+import QueryProvider from "@/components/extras/QueryProvider";
+import { getToken } from "../services/authService";
 
 const inter = Inter({ subsets: ["latin"] });
 

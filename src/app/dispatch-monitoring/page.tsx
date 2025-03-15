@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Layout from "../components/Layout";
-import Header from "../components/reusesables/header";
-import DispatchMap from "../components/reusesables/dispatch-map";
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import DispatchMap from "@/components/reusesables/dispatch-map";
 import Pusher from "pusher-js";
 import Echo from "laravel-echo";
 import { FaBus } from "react-icons/fa";
-import { getAllVehicleAssignments } from "../services/vehicleAssignService";
+import { getAllVehicleAssignments } from "../../services/vehicleAssignService";
 import {
   startAlley,
   getAllOnAlley,
@@ -16,11 +16,11 @@ import {
   endAlley,
   deleteRecord,
   endDispatch,
-} from "../services/dispatchService";
+} from "../../services/dispatchService";
 import { MapProvider } from "@/providers/MapProvider";
-import AlleyModal from "../components/dispatch_monitoring/AlleyModal";
-import DispatchModal from "../components/dispatch_monitoring/DispatchModal";
-import StaticLocationsData from "../components/extras/StaticLocationsData";
+import AlleyModal from "@/components/dispatch_monitoring/AlleyModal";
+import DispatchModal from "@/components/dispatch_monitoring/DispatchModal";
+import StaticLocationsData from "@/components/extras/StaticLocationsData";
 import { useQuery } from '@tanstack/react-query';
 import { ToastContainer, toast } from 'react-toastify';
 

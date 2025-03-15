@@ -1,30 +1,55 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { createProfile } from "@/app/services/userProfile";
+import { updateProfile, getProfileById } from "@/services/userProfile";
 
-const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
-  const formRef = useRef<HTMLFormElement>(null);
-  const [apiError, setApiError] = useState<string>("");
-
+const EditDispatcherModal = ({ isOpen, onClose, userProfileId, onSave }) => {
   const [birthday, setBirthday] = useState<string>("");
-  const [dateHired, setDateHired] = useState<string>("");
   const [age, setAge] = useState<number | string>("");
-  const [isFormValid, setIsFormValid] = useState<boolean>(false);
-
+  const [apiError, setApiError] = useState<string>("");
   const [formData, setFormData] = useState({
     last_name: "",
     first_name: "",
     middle_initial: "",
     position: "dispatcher",
-    sex: "",
+    sex: "Male",
     contact_number: "",
+    date_hired: "",
     contact_person: "",
     contact_person_number: "",
     address: "",
-    status: "On Duty",
-    specific_personnel_status: "",
+    status: "",
   });
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!userProfileId) return;
+      try {
+        const response = await getProfileById(userProfileId);
+        const userProfileData = response.profile;
+
+        setFormData({
+          last_name: userProfileData.last_name || "",
+          first_name: userProfileData.first_name || "",
+          middle_initial: userProfileData.middle_initial || "",
+          position: userProfileData.position || "dispatcher",
+          sex: userProfileData.sex || "Male",
+          contact_number: userProfileData.contact_number || "",
+          date_hired: userProfileData.date_hired || "",
+          status: userProfileData.status || "",
+          contact_person: userProfileData.contact_person || "",
+          contact_person_number: userProfileData.contact_person_number || "",
+          address: userProfileData.address || "",
+        });
+        setBirthday(userProfileData.date_of_birth || "");
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+
+    if (isOpen) fetchUserProfile();
+  }, [userProfileId, isOpen]);
 
   useEffect(() => {
     if (birthday) {
@@ -44,29 +69,9 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
     }
   }, [birthday]);
 
-  useEffect(() => {
-    const checkFormValidity = () => {
-      const requiredFields = [
-        formData.last_name,
-        formData.first_name,
-        formData.sex,
-        formData.contact_number,
-        formData.contact_person,
-        formData.contact_person_number,
-        formData.address,
-        birthday,
-        dateHired
-      ];
-      
-      setIsFormValid(requiredFields.every(field => field.trim() !== ""));
-    };
-    
-    checkFormValidity();
-  }, [formData, birthday, dateHired]);
-
   const handleInputChange = (
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
     const { name, value } = e.target;
@@ -76,55 +81,30 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
     }));
   };
 
-  const resetForm = () => {
-    setFormData({
-      last_name: "",
-      first_name: "",
-      middle_initial: "",
-      position: "dispatcher",
-      sex: "",
-      contact_number: "",
-      contact_person: "",
-      contact_person_number: "",
-      address: "",
-      status: "On Duty",
-      specific_personnel_status: "",
-    });
-    setBirthday("");
-    setDateHired("");
-    setAge("");
-    setApiError("");
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (formRef.current && formRef.current.reportValidity()) {
       try {
         setApiError("");
-        const newProfile = {
+        const updatedProfile = {
           ...formData,
           date_of_birth: birthday,
-          date_hired: dateHired,
         };
-        const response = await createProfile(newProfile);
-        if (response && response.profile) {
-          onSave(response.profile);
-          resetForm();
-          onClose();
+        if (!userProfileId) {
+          throw new Error("Error: Missing userProfileId");
         }
+        await updateProfile(userProfileId, updatedProfile);
+        onSave({ ...updatedProfile, user_profile_id: userProfileId });
+        onClose();
       } catch (error) {
-        console.error("Error creating profile:", error);
+        console.error("Error updating profile:", error);
         setApiError(
           error.message || 
           error.error || 
-          "An error occurred while creating the profile"
+          "An error occurred while updating the profile"
         );
       }
     }
-  };
-
-  const handleClose = () => {
-    resetForm();
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -133,9 +113,9 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b pb-4">
-          <h2 className="text-2xl font-semibold">Add Dispatcher Record</h2>
+          <h2 className="text-2xl font-semibold">Edit Dispatcher Record</h2>
           <button
-            onClick={handleClose}
+            onClick={onClose}
             className="text-gray-500 hover:text-gray-700 focus:outline-none"
           >
             &times;
@@ -148,11 +128,7 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
           </div>
         )}
 
-        <form
-          ref={formRef}
-          className="grid sm:grid-cols-1 lg:grid-cols-2 gap-4 mt-4"
-          noValidate
-        >
+        <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mt-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Last Name
@@ -161,39 +137,39 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
               name="last_name"
               value={formData.last_name}
               onChange={handleInputChange}
-              placeholder="e.g. Callo"
               required
+              className="focus:ring-2 focus:ring-blue-500"
             />
 
-            <label className="block text-sm font-medium text-gray-700 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mt-4">
               First Name
             </label>
             <Input
               name="first_name"
               value={formData.first_name}
               onChange={handleInputChange}
-              placeholder="e.g. Juan"
               required
+              className="focus:ring-2 focus:ring-blue-500"
             />
 
-            <label className="block text-sm font-medium text-gray-700 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mt-4">
               Middle Initial
             </label>
             <Input
               name="middle_initial"
               value={formData.middle_initial}
               onChange={handleInputChange}
-              placeholder="e.g. V"
+              className="focus:ring-2 focus:ring-blue-500"
             />
 
-            <label className="block text-sm font-medium text-gray-700 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mt-4">
               Position
             </label>
             <Input
               name="position"
               value="Dispatcher"
               disabled
-              className="focus:outline-none"
+              className="focus:outline-none focus-visible:ring-0"
             />
 
             <label className="block text-sm font-medium text-gray-700 mt-4">
@@ -201,10 +177,10 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
             </label>
             <Input
               name="date_hired"
-              value={dateHired}
-              onChange={(e) => setDateHired(e.target.value)}
+              value={formData.date_hired}
               type="date"
-              required
+              readOnly
+              className="focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -218,28 +194,32 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
               onChange={(e) => setBirthday(e.target.value)}
               type="date"
               required
+              className="focus:ring-2 focus:ring-blue-500"
             />
-            <label className="block text-sm font-medium text-gray-700 mt-1">
+
+            <label className="block text-sm font-medium text-gray-700">
               Age
             </label>
-            <Input value={age} readOnly />
+            <Input
+              value={age}
+              readOnly
+              className="focus:ring-2 focus:ring-blue-500"
+            />
 
-            <label className="block text-sm font-medium text-gray-700 mt-3">
+            <label className="block text-sm font-medium text-gray-700 mt-4">
               Gender
             </label>
             <select
               name="sex"
               value={formData.sex}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 border rounded-md"
-              required
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Select Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
 
-            <label className="block text-sm font-medium text-gray-700 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mt-4">
               Contact Number
             </label>
             <Input
@@ -247,9 +227,10 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
               value={formData.contact_number}
               onChange={handleInputChange}
               required
+              className="focus:ring-2 focus:ring-blue-500"
             />
 
-            <label className="block text-sm font-medium text-gray-700 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mt-4">
               Contact Person
             </label>
             <Input
@@ -257,9 +238,10 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
               value={formData.contact_person}
               onChange={handleInputChange}
               required
+              className="focus:ring-2 focus:ring-blue-500"
             />
 
-            <label className="block text-sm font-medium text-gray-700 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mt-4">
               Contact Person Number
             </label>
             <Input
@@ -267,43 +249,40 @@ const AddDispatcherModal = ({ isOpen, onClose, onSave }) => {
               value={formData.contact_person_number}
               onChange={handleInputChange}
               required
+              className="focus:ring-2 focus:ring-blue-500"
             />
 
-            <label className="block text-sm font-medium text-gray-700 mt-2">
+            <label className="block text-sm font-medium text-gray-700 mt-4">
               Address
             </label>
             <textarea
               name="address"
               value={formData.address}
               onChange={handleInputChange}
+              className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
               required
-              className="w-full px-4 border rounded-md"
             />
           </div>
-        </form>
 
-        <div className="col-span-2 flex justify-end space-x-4 mt-6">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!isFormValid}
-            className={`${
-              isFormValid ? "bg-blue-500 hover:bg-blue-600" : "bg-blue-300 cursor-not-allowed"
-            } text-white px-6 py-2 rounded-md`}
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600"
-          >
-            Cancel
-          </button>
-        </div>
+          <div className="col-span-2 flex justify-end space-x-4 mt-6">
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
-export default AddDispatcherModal; 
+export default EditDispatcherModal; 

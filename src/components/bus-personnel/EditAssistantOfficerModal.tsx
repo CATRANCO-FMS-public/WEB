@@ -1,18 +1,23 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { updateProfile, getProfileById } from "@/app/services/userProfile";
+import { updateProfile, getProfileById } from "@/services/userProfile";
 
-const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
-  const [birthday, setBirthday] = useState<string>(""); // State for birthday
-  const [age, setAge] = useState<number | string>(""); // State for age
+const EditAssistantOfficerModal = ({
+  isOpen,
+  onClose,
+  userProfileId,
+  onSave,
+}) => {
+  const [birthday, setBirthday] = useState<string>(""); // State to hold birthday
+  const [age, setAge] = useState<number | string>(""); // State to hold calculated age
   const [apiError, setApiError] = useState<string>(""); // Add API error state
+  const formRef = useRef<HTMLFormElement>(null); // Add form ref
   const [formData, setFormData] = useState({
     last_name: "",
     first_name: "",
     middle_initial: "",
-    position: "driver",
-    license_number: "",
+    position: "passenger_assistant_officer",
     sex: "Male",
     contact_number: "",
     date_hired: "",
@@ -22,32 +27,29 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
 
     status: "",
   });
-  const formRef = useRef<HTMLFormElement>(null); // Add form ref
 
   // Fetch user profile data when the modal is opened
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!userProfileId) return;
       try {
-        const response = await getProfileById(userProfileId); // Fetch profile by ID
-        const userProfileData = response.profile; // Extract profile data
+        const response = await getProfileById(userProfileId);
+        const userProfileData = response.profile;
 
-        // Populate form fields
         setFormData({
           last_name: userProfileData.last_name || "",
           first_name: userProfileData.first_name || "",
           middle_initial: userProfileData.middle_initial || "",
-          position: userProfileData.position || "driver",
-          license_number: userProfileData.license_number || "",
+          position: userProfileData.position || "passenger_assistant_officer",
           sex: userProfileData.sex || "Male",
-          contact_number: userProfileData.contact_number || "",
           date_hired: userProfileData.date_hired || "",
           status: userProfileData.status || "",
+          contact_number: userProfileData.contact_number || "",
           contact_person: userProfileData.contact_person || "",
           contact_person_number: userProfileData.contact_person_number || "",
           address: userProfileData.address || "",
         });
-        setBirthday(userProfileData.date_of_birth || ""); // Set birthday
+        setBirthday(userProfileData.date_of_birth || ""); // Set birthday for age calculation
       } catch (error) {
         console.error("Error fetching user profile:", error);
       }
@@ -56,7 +58,7 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
     if (isOpen) fetchUserProfile();
   }, [userProfileId, isOpen]);
 
-  // Calculate age whenever the birthday changes
+  // Calculate age when birthday changes
   useEffect(() => {
     if (birthday) {
       const birthDate = new Date(birthday);
@@ -71,24 +73,29 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
       }
       setAge(calculatedAge);
     } else {
-      setAge(""); // Clear age if birthday is removed
+      setAge(""); // Clear age if no birthday is provided
     }
   }, [birthday]);
 
+  // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value, // Spread previous formData and set new value
+      [name]: value,
     }));
   };
 
   // Handle birthday changes
   const handleBirthdayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBirthday(e.target.value);
+  };
+  // Handle date hired changes
+  const handleDateHiredChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBirthday(e.target.value);
   };
 
@@ -125,7 +132,9 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white w-full max-w-4xl rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b pb-4">
-          <h2 className="text-2xl font-semibold">Edit Driver Record</h2>
+          <h2 className="text-2xl font-semibold">
+            Edit Passenger Assistant Officer Record
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 focus:outline-none"
@@ -154,7 +163,6 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
               required
               className="focus:ring-2 focus:ring-blue-500"
             />
-
             <label className="block text-sm font-medium text-gray-700 mt-4">
               First Name
             </label>
@@ -182,27 +190,16 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
             </label>
             <Input
               name="position"
-              value="Driver"
+              value="Passenger Assistant Officer"
               disabled
-              className="focus:outline-none focus-visible:ring-0"
+              className="focus:outline-none"
             />
-
-            <label className="block text-sm font-medium text-gray-700 mt-4">
-              License Number
-            </label>
-            <Input
-              name="license_number"
-              value={formData.license_number}
-              onChange={handleInputChange}
-              placeholder="e.g. N03-12-123456"
-              required
-              className="focus:ring-2 focus:ring-blue-500"
-            />
+            
             <label className="block text-sm font-medium text-gray-700 mt-4">
               Date Hired
             </label>
             <Input
-              name="Date Hired"
+              name="date_hired"
               value={formData.date_hired}
               type="date"
               readOnly
@@ -212,7 +209,7 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
 
           {/* Right Column */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mt-4">
+            <label className="block text-sm font-medium text-gray-700">
               Date of Birth
             </label>
             <Input
@@ -223,7 +220,7 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
               required
               className="focus:ring-2 focus:ring-blue-500"
             />
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 ">
               Age
             </label>
             <Input
@@ -231,7 +228,6 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
               readOnly
               className="focus:ring-2 focus:ring-blue-500"
             />
-
             <label className="block text-sm font-medium text-gray-700 mt-4">
               Gender
             </label>
@@ -244,7 +240,6 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
-
             <label className="block text-sm font-medium text-gray-700 mt-4">
               Contact Number
             </label>
@@ -252,10 +247,10 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
               name="contact_number"
               value={formData.contact_number}
               onChange={handleInputChange}
+              placeholder="e.g. 09123456789"
               required
               className="focus:ring-2 focus:ring-blue-500"
             />
-
             <label className="block text-sm font-medium text-gray-700 mt-4">
               Contact Person
             </label>
@@ -263,10 +258,10 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
               name="contact_person"
               value={formData.contact_person}
               onChange={handleInputChange}
+              placeholder="Contact Person Name"
               required
               className="focus:ring-2 focus:ring-blue-500"
             />
-
             <label className="block text-sm font-medium text-gray-700 mt-4">
               Contact Person Number
             </label>
@@ -274,10 +269,10 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
               name="contact_person_number"
               value={formData.contact_person_number}
               onChange={handleInputChange}
+              placeholder="e.g. 09123456789"
               required
               className="focus:ring-2 focus:ring-blue-500"
             />
-
             <label className="block text-sm font-medium text-gray-700 mt-4">
               Address
             </label>
@@ -285,6 +280,7 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
               name="address"
               value={formData.address}
               onChange={handleInputChange}
+              placeholder="Enter Address"
               className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
               required
             />
@@ -311,4 +307,4 @@ const EditDriverModal = ({ isOpen, onClose, userProfileId, onSave }) => {
   );
 };
 
-export default EditDriverModal;
+export default EditAssistantOfficerModal;

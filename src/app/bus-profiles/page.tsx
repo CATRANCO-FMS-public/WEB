@@ -1,20 +1,20 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Layout from "../components/Layout";
-import Header from "../components/reusesables/header";
-import Confirmpopup from "../components/reusesables/confirm-popup";
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import Confirmpopup from "@/components/reusesables/confirm-popup";
 import { FaSearch, FaPlus, FaHistory } from "react-icons/fa";
-import BusRecord from "../components/bus-profile/BusRecord";
-import AddBusRecordModal from "../components/bus-profile/AddBusRecordModal";
-import AssignBusPersonnelModal from "../components/bus-profile/AssignBusPersonnelModal";
-import Pagination from "../components/reusesables/pagination";
-import { getAllVehicles, deleteVehicle } from "../services/vehicleService";
+import BusRecord from "@/components/bus-profile/BusRecord";
+import AddBusRecordModal from "@/components/bus-profile/AddBusRecordModal";
+import AssignBusPersonnelModal from "@/components/bus-profile/AssignBusPersonnelModal";
+import Pagination from "@/components/reusesables/pagination";
+import { getAllVehicles, deleteVehicle } from "../../services/vehicleService";
 import {
   getAllVehicleAssignments,
   deleteVehicleAssignment,
-} from "../services/vehicleAssignService";
-import HistoryModalForBus from "../components/bus-profile/HistoryModalForBus";
+} from "../../services/vehicleAssignService";
+import HistoryModalForBus from "@/components/bus-profile/HistoryModalForBus";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

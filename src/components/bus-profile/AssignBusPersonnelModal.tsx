@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { getOffDutyUserProfiles } from "@/app/services/userProfile";
-import { getAllVehicles } from "@/app/services/vehicleService";
-import { createVehicleAssignment } from "@/app/services/vehicleAssignService";
+import { getOffDutyUserProfiles } from "@/services/userProfile";
+import { getAllVehicles } from "@/services/vehicleService";
+import { createVehicleAssignment } from "@/services/vehicleAssignService";
 
 interface AssignBusPersonnelModalProps {
   onClose: () => void;

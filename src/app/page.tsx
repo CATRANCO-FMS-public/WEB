@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import LoadingSpinner from "./components/extras/loadingAnimations";
+import LoadingSpinner from "@/components/extras/loadingAnimations";
 
 export default function LoadingPage() {
   const router = useRouter();

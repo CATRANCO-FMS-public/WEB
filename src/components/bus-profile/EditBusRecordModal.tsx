@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { getVehicleById, updateVehicle } from "@/app/services/vehicleService";
+import { getVehicleById, updateVehicle } from "@/services/vehicleService";
 
 const EditBusRecordModal = ({ vehicle_id, onClose, onSubmit, refreshData }) => {
   const [busDetails, setBusDetails] = useState({

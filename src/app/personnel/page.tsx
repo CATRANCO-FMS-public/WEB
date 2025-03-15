@@ -1,23 +1,23 @@
 "use client";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Layout from "../components/Layout";
-import Header from "../components/reusesables/header";
-import Confirmpopup from "../components/reusesables/confirm-popup";
-import AddDriverModal from "../components/bus-personnel/AddDriverModal";
-import AddAssistantOfficerModal from "../components/bus-personnel/AddAssistantOfficerModal";
-import EditDriverModal from "../components/bus-personnel/EditDriverModal";
-import EditAssistantOfficerModal from "../components/bus-personnel/EditAssistantOfficerModal";
-import Pagination from "../components/reusesables/pagination"; // Import Pagination Component
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import Confirmpopup from "@/components/reusesables/confirm-popup";
+import AddDriverModal from "@/components/bus-personnel/AddDriverModal";
+import AddAssistantOfficerModal from "@/components/bus-personnel/AddAssistantOfficerModal";
+import EditDriverModal from "@/components/bus-personnel/EditDriverModal";
+import EditAssistantOfficerModal from "@/components/bus-personnel/EditAssistantOfficerModal";
+import Pagination from "@/components/reusesables/pagination"; // Import Pagination Component
 import { FaPlus, FaHistory } from "react-icons/fa";
-import PersonnelRecord from "../components/bus-personnel/PersonnelRecord";
-import { getAllProfiles, deleteProfile } from "@/app/services/userProfile";
-import HistoryModal from "../components/bus-personnel/HistoryModal";
-import ViewBioDataModal from "../components/bus-personnel/ViewBioDataModal";
+import PersonnelRecord from "@/components/bus-personnel/PersonnelRecord";
+import { getAllProfiles, deleteProfile } from "@/services/userProfile";
+import HistoryModal from "@/components/bus-personnel/HistoryModal";
+import ViewBioDataModal from "@/components/bus-personnel/ViewBioDataModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AddDispatcherModal from "../components/bus-personnel/AddDispatcherModal";
-import EditDispatcherModal from "../components/bus-personnel/EditDispatcherModal";
+import AddDispatcherModal from "@/components/bus-personnel/AddDispatcherModal";
+import EditDispatcherModal from "@/components/bus-personnel/EditDispatcherModal";
 
 const extractHistoryFromProfiles = (profiles) => {
   return profiles.map((profile) => ({

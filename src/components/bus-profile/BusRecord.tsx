@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   getAllVehicleAssignments,
-} from "@/app/services/vehicleAssignService";
-import EditBusRecordModal from "@/app/components/bus-profile/EditBusRecordModal";
+} from "@/services/vehicleAssignService";
+import EditBusRecordModal from "./EditBusRecordModal";
 import EditPersonnelModal from "./EditPersonnelModal";
-import FullRecordModal from "@/app/components/bus-profile/FullRecordModal";
+import FullRecordModal from "./FullRecordModal";
 import { QueryClient } from "@tanstack/react-query";
 
 interface BusBoxProps {

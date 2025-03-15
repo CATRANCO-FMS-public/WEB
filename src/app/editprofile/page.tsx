@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Sidebar2 from "../components/reusesables/sidebar-settings";
-import Header from "../components/reusesables/header";
+import Sidebar2 from "@/components/reusesables/sidebar-settings";
+import Header from "@/components/reusesables/header";
 import {
   getProfile,
   updateAccount,
   updateOwnAccount,
   getOwnProfile,
-} from "../services/authService";
+} from "../../services/authService";
 import { useQuery } from "@tanstack/react-query";
 
 const EditProfile: React.FC = () => {

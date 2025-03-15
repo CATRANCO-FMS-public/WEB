@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { createProfile } from "@/app/services/userProfile";
+import { createProfile } from "@/services/userProfile";
 
 const AddDriverModal = ({ isOpen, onClose, onSave }) => {
   const formRef = useRef<HTMLFormElement>(null);

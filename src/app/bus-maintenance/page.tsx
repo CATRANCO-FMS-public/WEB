@@ -1,12 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import Layout from "../components/Layout";
-import Header from "../components/reusesables/header";
-import MaintenanceAddModal from "../components/bus-maintenance/MaintenanceAddModal";
-import MaintenanceEditModal from "../components/bus-maintenance/MaintenanceEditModal";
-import CompletionProofModal from "../components/bus-maintenance/CompletionProofModal"; // Component for proof submission
-import ViewProofModal from "../components/bus-maintenance/ViewProofModal"; // Component for viewing proof
-import Pagination from "../components/reusesables/pagination";
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import MaintenanceAddModal from "@/components/bus-maintenance/MaintenanceAddModal";
+import MaintenanceEditModal from "@/components/bus-maintenance/MaintenanceEditModal";
+import CompletionProofModal from "@/components/bus-maintenance/CompletionProofModal"; // Component for proof submission
+import ViewProofModal from "@/components/bus-maintenance/ViewProofModal"; // Component for viewing proof
+import Pagination from "@/components/reusesables/pagination";
 import { FaPlus, FaHistory } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -16,11 +16,11 @@ import {
   updateMaintenanceScheduling,
   deleteMaintenanceScheduling,
   toggleMaintenanceSchedulingStatus,
-} from "../services/maintenanceService";
+} from "../../services/maintenanceService";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import MaintenanceHistoryModal from "../components/bus-maintenance/MaintenanceHistoryModal";
+import MaintenanceHistoryModal from "@/components/bus-maintenance/MaintenanceHistoryModal";
 
 // Define interface for MaintenanceRecord
 interface MaintenanceRecord {

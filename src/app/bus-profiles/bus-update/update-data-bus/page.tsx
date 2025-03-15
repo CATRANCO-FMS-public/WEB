@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { getVehicleById, updateVehicle } from "@/app/services/vehicleService";
+import { getVehicleById, updateVehicle } from "@/services/vehicleService";
 
 const BusUpdate = () => {
   const searchParams = useSearchParams();

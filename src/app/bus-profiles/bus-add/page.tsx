@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { createVehicle } from "@/app/services/vehicleService"; // Adjust the import path as necessary
+import { createVehicle } from "@/services/vehicleService"; // Adjust the import path as necessary
 
 const BusAdd = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);

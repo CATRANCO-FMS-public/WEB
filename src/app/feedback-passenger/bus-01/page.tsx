@@ -4,7 +4,7 @@ import {
   createFeedbackLog,
   generateOTP,
   verifyPhoneNumber,
-} from "../../services/feedbackService";
+} from "../../../services/feedbackService";
 
 const FeedbackForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState("initial");
