@@ -14,6 +14,7 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
   const [mechanicCompanyAddress, setMechanicCompanyAddress] = useState("");
   const [otherMaintenanceType, setOtherMaintenanceType] = useState(""); // New state for "others"
   const [error, setError] = useState(""); // Add error state
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
 
   // Maintenance types list
   const maintenanceTypes = [
@@ -81,6 +82,7 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
     }
 
     try {
+      setIsSubmitting(true); // Set submitting state to true
       setError(""); // Clear any previous errors
       const formattedDate = `${maintenanceDate.toLocaleDateString(
         "en-CA"
@@ -104,6 +106,8 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
     } catch (error) {
       console.error("Error saving maintenance record:", error);
       setError("Failed to save maintenance record. Please try again later.");
+    } finally {
+      setIsSubmitting(false); // Reset submitting state regardless of outcome
     }
   };
 
@@ -264,7 +268,8 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
               maintenanceType &&
               maintenanceCost &&
               mechanicCompany &&
-              mechanicCompanyAddress
+              mechanicCompanyAddress &&
+              !isSubmitting
                 ? "bg-blue-500 text-white"
                 : "bg-gray-300 text-gray-500"
             } rounded-md`}
@@ -273,14 +278,16 @@ const MaintenanceAddModal = ({ isOpen, onClose, onSave }) => {
               !maintenanceType ||
               !maintenanceCost ||
               !mechanicCompany ||
-              !mechanicCompanyAddress
+              !mechanicCompanyAddress ||
+              isSubmitting
             }
           >
-            Save
+            {isSubmitting ? "Saving..." : "Save"}
           </button>
           <button
             className="px-6 py-3 border border-red-500 text-white rounded-md bg-red-500"
             onClick={handleClose}
+            disabled={isSubmitting}
           >
             Cancel
           </button>
