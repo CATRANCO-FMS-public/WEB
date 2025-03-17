@@ -305,43 +305,45 @@ const MaintenanceManagement = () => {
         style={{ zIndex: 9999 }}
         containerId="maintenance-toasts"
       />
-      <div className="options flex flex-col p-3 space-y-4">
-        {/* Active/Completed Toggle Buttons */}
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <button
-            className={`px-4 py-2 rounded-md ${
-              viewType === "active"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-800"
-            }`}
-            onClick={() => setViewType("active")}
-          >
-            Active
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              viewType === "completed"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-800"
-            }`}
-            onClick={() => setViewType("completed")}
-          >
-            Completed
-          </button>
-        </div>
-
-        {/* Search Input and Action Buttons */}
-        <div className="flex flex-col space-y-3">
-          <input
-            type="text"
-            placeholder="Find maintenance records"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-
-          {/* Add and View History Buttons */}
+      <div className="content flex flex-col flex-1 overflow-y-auto p-6 sm:p-12">
+        <div className="options flex flex-col space-y-4 p-3">
+          {/* Active/Completed Toggle Buttons */}
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            <button
+              className={`px-4 py-2 rounded-md ${
+                viewType === "active"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-800"
+              }`}
+              onClick={() => setViewType("active")}
+            >
+              Active
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md ${
+                viewType === "completed"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-800"
+              }`}
+              onClick={() => setViewType("completed")}
+            >
+              Completed
+            </button>
+          </div>
+
+          {/* Search Input and Action Buttons */}
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 sm:items-center">
+            <div className="w-full sm:w-1/3 md:w-2/5 lg:w-1/3">
+              <input
+                type="text"
+                placeholder="Find maintenance records"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Add and View History Buttons */}
             <button
               className="flex items-center justify-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50"
               onClick={() => setIsAddModalOpen(true)}
@@ -358,17 +360,15 @@ const MaintenanceManagement = () => {
             </button>
           </div>
         </div>
-      </div>
 
-      {isLoading ? (
-        <div className="text-center text-blue-500 mt-10">Loading maintenance records...</div>
-      ) : isError ? (
-        <div className="text-center text-red-500 mt-10">Error loading maintenance records.</div>
-      ) : filteredRecords?.length === 0 ? (
-        <div className="text-center text-gray-500 mt-10">No maintenance records found.</div>
-      ) : (
-        <>
-          <div className="records flex flex-col h-full overflow-y-auto">
+        {isLoading ? (
+          <div className="text-center text-blue-500 mt-10">Loading maintenance records...</div>
+        ) : isError ? (
+          <div className="text-center text-red-500 mt-10">Error loading maintenance records.</div>
+        ) : filteredRecords?.length === 0 ? (
+          <div className="text-center text-gray-500 mt-10">No maintenance records found.</div>
+        ) : (
+          <div className="records flex flex-col h-full">
             <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-3">
               {currentRecords.map((record) => (
                 <div
@@ -475,59 +475,58 @@ const MaintenanceManagement = () => {
                 </div>
               ))}
             </div>
+            <div className="pagination-container p-4 mb-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
           </div>
+        )}
 
-          <div className="pagination-container p-4 mb-4">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
-          </div>
-        </>
-      )}
-
-      {/* Modals */}
-      <MaintenanceAddModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSave={handleSave}
-      />
-      <MaintenanceEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        record={currentRecord}
-        onSave={handleSave}
-      />
-      <CompletionProofModal
-        isOpen={isProofModalOpen}
-        onClose={() => setIsProofModalOpen(false)}
-        record={currentRecord}
-        onSubmit={handleProofSubmit}
-      />
-      <ViewProofModal
-        isOpen={isViewProofModalOpen}
-        onClose={() => setIsViewProofModalOpen(false)}
-        proof={currentRecord?.maintenance_complete_proof}
-        onReturnToActive={() => {
-          if (currentRecord?.maintenance_scheduling_id) {
-            handleReturnToActive(currentRecord.maintenance_scheduling_id);
-          } else {
-            console.error("Maintenance scheduling ID is undefined.");
-          }
-        }}
-      />
-      <MaintenanceHistoryModal
-        isOpen={isHistoryModalOpen}
-        onClose={() => setIsHistoryModalOpen(false)}
-        history={filteredRecords} // Pass the records to the modal
-      />
-      <ConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-        onConfirm={confirmDelete}
-        message="Are you sure you want to delete this maintenance record? This action cannot be undone."
-      />
+        {/* Modals */}
+        <MaintenanceAddModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSave={handleSave}
+        />
+        <MaintenanceEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          record={currentRecord}
+          onSave={handleSave}
+        />
+        <CompletionProofModal
+          isOpen={isProofModalOpen}
+          onClose={() => setIsProofModalOpen(false)}
+          record={currentRecord}
+          onSubmit={handleProofSubmit}
+        />
+        <ViewProofModal
+          isOpen={isViewProofModalOpen}
+          onClose={() => setIsViewProofModalOpen(false)}
+          proof={currentRecord?.maintenance_complete_proof}
+          onReturnToActive={() => {
+            if (currentRecord?.maintenance_scheduling_id) {
+              handleReturnToActive(currentRecord.maintenance_scheduling_id);
+            } else {
+              console.error("Maintenance scheduling ID is undefined.");
+            }
+          }}
+        />
+        <MaintenanceHistoryModal
+          isOpen={isHistoryModalOpen}
+          onClose={() => setIsHistoryModalOpen(false)}
+          history={filteredRecords} // Pass the records to the modal
+        />
+        <ConfirmationModal
+          isOpen={isConfirmModalOpen}
+          onClose={() => setIsConfirmModalOpen(false)}
+          onConfirm={confirmDelete}
+          message="Are you sure you want to delete this maintenance record? This action cannot be undone."
+        />
+      </div>
     </Layout>
   );
 };

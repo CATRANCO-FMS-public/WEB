@@ -369,19 +369,19 @@ const ViewRecord = () => {
         title="Confirm Delete"
         message="Are you sure you want to delete this fuel log? This action cannot be undone."
       />
-      <div className="flex flex-col md:flex-row bg-gray-100">
-        <div className="flex-1 flex flex-col bg-slate-200 pb-6">
+      <div className="flex flex-col md:flex-row min-h-screen overflow-x-hidden">
+        <div className="flex-1 flex flex-col bg-slate-200 pb-6 w-full">
           <Header title="Fuel Monitoring" />
           <button 
             onClick={handleBack}
-            className="flex items-center text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium ml-4 mt-2 mb-2 bg-transparent border-none outline-none"
+            className="flex items-center px-4 py-2 ml-4 mt-4 mb-2 bg-white hover:bg-gray-100 text-gray-700 rounded-lg shadow-sm transition-colors duration-200 text-sm sm:text-base w-fit"
           >
             <FaArrowLeft className="mr-2" /> 
-            <span>Back</span>
+            Back to Monitoring
           </button>
-          <section className="p-2 sm:p-4 flex flex-col items-center md:items-start">
+          <section className="p-6 sm:p-12 flex flex-col items-center md:items-start max-w-full">
             {/* Bus Info Section */}
-            <div className="flex items-center w-full mb-3">
+            <div className="flex items-center w-full mb-3 px-2">
               <FaBus size={20} className="mr-2" />
               <span className="text-base sm:text-lg font-bold">BUS {selectedBus}</span>
               <span
@@ -396,12 +396,12 @@ const ViewRecord = () => {
             </div>
 
             {/* Top Buttons Section */}
-            <div className="top-btns flex flex-col w-full">
-              <div className="time-intervals grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 w-full">
+            <div className="top-btns w-full px-2">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-3">
                 {["daily", "weekly", "monthly", "yearly"].map((interval) => (
                   <button
                     key={interval}
-                    className={`px-3 py-1.5 rounded text-sm sm:text-base ${
+                    className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded text-sm sm:text-base ${
                       timeInterval === interval
                         ? "bg-blue-500 text-white"
                         : "bg-gray-500 text-white"
@@ -411,17 +411,18 @@ const ViewRecord = () => {
                     {interval.charAt(0).toUpperCase() + interval.slice(1)}
                   </button>
                 ))}
+                <button
+                  onClick={handlePrint}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm sm:text-base col-span-2 sm:col-span-1 sm:ml-auto"
+                >
+                  <span className="hidden sm:inline">Print Chart as PDF</span>
+                  <span className="sm:hidden">Print PDF</span>
+                </button>
               </div>
-              <button
-                onClick={handlePrint}
-                className="px-3 py-1.5 bg-green-500 text-white rounded hover:bg-green-600 text-sm sm:text-base"
-              >
-                Print Chart as PDF
-              </button>
             </div>
 
             {/* Chart Section */}
-            <div className="relative chart-container w-full h-[300px] sm:h-[400px] md:h-[500px] bg-white p-2 sm:p-4 rounded-lg shadow-lg mt-3">
+            <div className="relative chart-container w-full h-[300px] sm:h-[400px] md:h-[500px] bg-white p-2 sm:p-4 rounded-lg shadow-lg mt-3 max-w-full">
               <div className="absolute inset-0 flex justify-center items-center opacity-10 z-0">
                 <span className="text-3xl sm:text-4xl md:text-6xl font-bold text-gray-500">
                   {selectedBus ? `Bus ${selectedBus}` : "Loading..."}
@@ -429,105 +430,111 @@ const ViewRecord = () => {
               </div>
               <Line
                 data={data}
-                options={{ ...options, responsive: true }}
+                options={{ ...options, responsive: true, maintainAspectRatio: false }}
                 className="relative z-10"
               />
             </div>
 
-            {/* Table Section */}
-            <div className="table-container w-full mt-4 bg-white p-2 sm:p-4 rounded-lg shadow-lg overflow-x-auto">
-              <table className="w-full text-left text-sm sm:text-base">
-                <thead>
-                  <tr>
-                    <th className="py-2 px-2 sm:px-4">Date</th>
-                    <th className="py-2 px-2 sm:px-4">Odometer KM</th>
-                    <th className="py-2 px-2 sm:px-4">Distance</th>
-                    <th className="py-2 px-2 sm:px-4">Fuel Type</th>
-                    <th className="py-2 px-2 sm:px-4">Fuel Price</th>
-                    <th className="py-2 px-2 sm:px-4">Quantity</th>
-                    <th className="py-2 px-2 sm:px-4">Total (PHP)</th>
-                    <th className="py-2 px-2 sm:px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayedRecords
-                    .sort(
-                      (a, b) =>
-                        new Date(a.purchase_date).getTime() -
-                        new Date(b.purchase_date).getTime()
-                    )
-                    .map((entry) => (
-                      <tr key={entry.fuel_logs_id} className="border-t">
-                        <td className="py-2 px-2 sm:px-4">
-                          {new Date(entry.purchase_date).toLocaleDateString()}
-                        </td>
-                        <td className="py-2 px-2 sm:px-4">{entry.odometer_km} KM</td>
-                        <td className="py-2 px-2 sm:px-4">{entry.distance_traveled} KM</td>
-                        <td className="py-2 px-2 sm:px-4">{entry.fuel_type}</td>
-                        <td className="py-2 px-2 sm:px-4">{entry.fuel_price}</td>
-                        <td className="py-2 px-2 sm:px-4">
-                          {entry.fuel_liters_quantity} L
-                        </td>
-                        <td className="py-2 px-2 sm:px-4">{entry.total_expense} PHP</td>
-                        <td className="py-2 px-2 sm:px-4">
-                          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                            <button
-                              onClick={() => handleViewDetails(entry)}
-                              className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs sm:text-sm"
-                            >
-                              View
-                            </button>
-                            <button
-                              onClick={() => handleEdit(entry)}
-                              className="px-2 py-1 bg-blue-500 text-white rounded text-xs sm:text-sm"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => confirmDelete(entry.fuel_logs_id)}
-                              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs sm:text-sm"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </td>
+            {/* Table Section - fix scrollbar visibility while maintaining background */}
+            <div className="w-full max-w-full overflow-x-auto mt-4">
+              <div className="table-container bg-white p-2 sm:p-4 rounded-lg shadow-lg">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm sm:text-base min-w-max">
+                    <thead>
+                      <tr>
+                        <th className="py-2 px-2 sm:px-4">Date</th>
+                        <th className="py-2 px-2 sm:px-4">Odometer KM</th>
+                        <th className="py-2 px-2 sm:px-4">Distance</th>
+                        <th className="py-2 px-2 sm:px-4">Fuel Type</th>
+                        <th className="py-2 px-2 sm:px-4">Fuel Price</th>
+                        <th className="py-2 px-2 sm:px-4">Quantity</th>
+                        <th className="py-2 px-2 sm:px-4">Total (PHP)</th>
+                        <th className="py-2 px-2 sm:px-4 min-w-[120px]">Actions</th>
                       </tr>
-                    ))}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {displayedRecords
+                        .sort(
+                          (a, b) =>
+                            new Date(a.purchase_date).getTime() -
+                            new Date(b.purchase_date).getTime()
+                        )
+                        .map((entry) => (
+                          <tr key={entry.fuel_logs_id} className="border-t">
+                            <td className="py-2 px-2 sm:px-4">
+                              {new Date(entry.purchase_date).toLocaleDateString()}
+                            </td>
+                            <td className="py-2 px-2 sm:px-4">{entry.odometer_km} KM</td>
+                            <td className="py-2 px-2 sm:px-4">{entry.distance_traveled} KM</td>
+                            <td className="py-2 px-2 sm:px-4">{entry.fuel_type}</td>
+                            <td className="py-2 px-2 sm:px-4">{entry.fuel_price}</td>
+                            <td className="py-2 px-2 sm:px-4">
+                              {entry.fuel_liters_quantity} L
+                            </td>
+                            <td className="py-2 px-2 sm:px-4">{entry.total_expense} PHP</td>
+                            <td className="py-2 px-2 sm:px-4">
+                              <div className="flex flex-row gap-1 sm:gap-2">
+                                <button
+                                  onClick={() => handleViewDetails(entry)}
+                                  className="px-2 py-1.5 sm:px-4 sm:py-2 bg-green-500 text-white rounded hover:bg-green-600 text-xs sm:text-base"
+                                >
+                                  View
+                                </button>
+                                <button
+                                  onClick={() => handleEdit(entry)}
+                                  className="px-2 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs sm:text-base"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => confirmDelete(entry.fuel_logs_id)}
+                                  className="px-2 py-1.5 sm:px-4 sm:py-2 bg-red-500 text-white rounded hover:bg-red-600 text-xs sm:text-base"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
             
             {/* Pagination and Actions */}
-            <div className="mt-4 flex flex-col sm:flex-row justify-between w-full gap-3">
+            <div className="mt-4 flex flex-col sm:flex-row justify-between w-full gap-3 px-2">
               <div className="flex gap-2">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1.5 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed text-sm"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed text-sm sm:text-base flex-1 sm:flex-none"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed text-sm"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed text-sm sm:text-base flex-1 sm:flex-none"
                 >
                   Next
                 </button>
               </div>
               <div className="right-btn flex gap-2">
                 <button
-                  className="px-3 py-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center text-sm"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center text-sm sm:text-base"
                   onClick={handleOpenHistoryModal}
                 >
                   <FaHistory className="mr-1" />
-                  View History
+                  <span className="hidden sm:inline">View History</span>
+                  <span className="sm:hidden">History</span>
                 </button>
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="px-3 py-1.5 bg-blue-500 text-white rounded text-sm"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm sm:text-base"
                 >
-                  Add New Record
+                  <span className="hidden sm:inline">Add New Record</span>
+                  <span className="sm:hidden">Add New</span>
                 </button>
               </div>
             </div>

@@ -186,7 +186,7 @@ const FuelMonitoring = () => {
   return (
     <Layout>
       <Header title="Fuel Monitoring" />
-      <section className="p-2 sm:p-4">
+      <section className="p-6 sm:p-12">
         <div className="flex justify-center items-center w-full">
           <div className="relative w-full">
             <div className="relative chart-container w-full h-[300px] sm:h-[400px] md:h-[500px] bg-white p-2 sm:p-4 rounded-lg shadow-lg">

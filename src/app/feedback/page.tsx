@@ -144,14 +144,14 @@ const FeedbackRecordDisplay = () => {
   return (
     <Layout>
       <Header title="Feedback Records" />
-      <div className="content flex flex-col flex-1 mb-3">
-        <div className="options flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 p-4 w-full sm:w-9/12 ml-1">
+      <div className="content flex flex-col flex-1 overflow-y-auto p-6 sm:p-12">
+        <div className="options flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 p-3">
           <input
             type="text"
             placeholder="Search by phone number or comment"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+            className="w-full sm:w-1/2 md:w-2/5 lg:w-1/3 px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         {isLoading ? (
@@ -162,7 +162,7 @@ const FeedbackRecordDisplay = () => {
           <div className="text-center text-gray-500 mt-10">No feedback records found.</div>
         ) : (
           <div className="records flex flex-col h-full">
-            <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-3 ml-5">
+            <div className="output grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-3">
               {paginatedRecords.map((record) => (
                 <FeedbackRecord
                   key={record.feedback_logs_id}
@@ -174,11 +174,13 @@ const FeedbackRecordDisplay = () => {
                 />
               ))}
             </div>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+            <div className="pagination-container p-4 mb-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </div>
         )}
       </div>

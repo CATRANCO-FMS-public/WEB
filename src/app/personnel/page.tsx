@@ -297,21 +297,23 @@ const Personnel = () => {
       <section className="flex flex-row h-screen bg-white">
         <div className="w-full flex flex-col bg-slate-200">
           <Header title="Bus Personnel Management" />
-          <div className="content flex flex-col flex-1 overflow-y-auto">
+          <div className="content flex flex-col flex-1 overflow-y-auto p-6 sm:p-12">
             <ButtonGroup
               activeButton={activeButton}
               onClick={setActiveButton}
               onViewHistory={openHistoryModal}
             />
             <div className="options flex flex-col space-y-3 p-3 sm:flex-row sm:space-y-0 sm:space-x-3 sm:items-center">
-              <input
-                type="text"
-                placeholder={`Find ${activeButton}`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-                style={{ height: "42px" }}
-              />
+              <div className="w-full sm:w-1/2 md:w-2/5 lg:w-1/3">
+                <input
+                  type="text"
+                  placeholder={`Find ${activeButton}`}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-500 rounded-md text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ height: "42px" }}
+                />
+              </div>
               <button
                 className="flex items-center justify-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50"
                 onClick={() => setIsAddModalOpen(true)}
