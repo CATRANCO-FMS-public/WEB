@@ -96,60 +96,66 @@ const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white w-1/3 rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-bold mb-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+      <div className="bg-white w-full md:w-2/3 lg:w-1/3 rounded-lg shadow-lg p-4 md:p-6 max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg md:text-xl font-bold mb-4">
           Add Tracker to a Vehicle 
         </h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-semibold mb-2">
-            Device Name
-          </label>
-          <input
-            type="text"
-            value={deviceName}
-            onChange={(e) => setDeviceName(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter device name"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 font-semibold mb-2">
-            Tracker Identifier
-          </label>
-          <input
-            type="text"
-            value={trackerIdent}
-            onChange={(e) => setTrackerIdent(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter tracker identifier"
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 font-semibold mb-2">
-            Vehicle
-          </label>
-          <select
-            value={vehicleId}
-            onChange={(e) => setVehicleId(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              {loading ? "Loading vehicles..." : "Select a vehicle"}
-            </option>
-            {busOptions.map((bus) => (
-              <option key={bus.vehicle_id} value={bus.vehicle_id}>
-                {`ID: ${bus.vehicle_id} - Plate: ${bus.plate_number}`}
+        {error && <p className="text-red-500 mb-4 text-sm md:text-base">{error}</p>}
+        
+        <div className="space-y-3 md:space-y-4">
+          <div>
+            <label className="block text-gray-700 font-semibold mb-1 md:mb-2 text-sm md:text-base">
+              Device Name
+            </label>
+            <input
+              type="text"
+              value={deviceName}
+              onChange={(e) => setDeviceName(e.target.value)}
+              className="w-full px-3 md:px-4 py-1.5 md:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+              placeholder="Enter device name"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 font-semibold mb-1 md:mb-2 text-sm md:text-base">
+              Tracker Identifier
+            </label>
+            <input
+              type="text"
+              value={trackerIdent}
+              onChange={(e) => setTrackerIdent(e.target.value)}
+              className="w-full px-3 md:px-4 py-1.5 md:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+              placeholder="Enter tracker identifier"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 font-semibold mb-1 md:mb-2 text-sm md:text-base">
+              Vehicle
+            </label>
+            <select
+              value={vehicleId}
+              onChange={(e) => setVehicleId(e.target.value)}
+              className="w-full px-3 md:px-4 py-1.5 md:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+            >
+              <option value="" disabled>
+                {loading ? "Loading vehicles..." : "Select a vehicle"}
               </option>
-            ))}
-          </select>
+              {busOptions.map((bus) => (
+                <option key={bus.vehicle_id} value={bus.vehicle_id}>
+                  {`ID: ${bus.vehicle_id} - Plate: ${bus.plate_number}`}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="flex justify-end space-x-4">
+
+        <div className="flex justify-end space-x-3 md:space-x-4 mt-6">
           <button
             onClick={handleSave}
             disabled={!isFormValid()}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-3 md:px-4 py-1.5 md:py-2 rounded-md text-sm md:text-base ${
               isFormValid()
                 ? "bg-blue-500 text-white hover:bg-blue-600"
                 : "bg-blue-300 text-white cursor-not-allowed"
@@ -159,7 +165,7 @@ const AddDeviceModal = ({ isOpen, onClose, onSave }) => {
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+            className="px-3 md:px-4 py-1.5 md:py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm md:text-base"
           >
             Cancel
           </button>
