@@ -1,26 +1,54 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+
 import { useSearchParams, useRouter } from "next/navigation";
+
 import { FaBus, FaHistory, FaArrowLeft } from "react-icons/fa";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
-import Header from "@/components/reusesables/header";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import "react-datepicker/dist/react-datepicker.css";
-import FuelAddModal from "@/components/fuel-monitoring/FuelAddModal";
-import FuelEditModal from "@/components/fuel-monitoring/FuelEditModal";
-import FuelViewDetailsModal from "@/components/fuel-monitoring/FuelViewDetailsModal";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import { groupByTimeInterval } from "../../../helper/fuel-helper";
+
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+
 import {
   fetchAllFuelLogs,
   deleteFuelLog,
 } from "../../../../services/fuellogsService";
-import { groupByTimeInterval } from "../../../helper/fuel-helper";
-import FuelHistoryModal from "@/components/fuel-monitoring/FuelHistoryModal";
-import Layout from "@/components/Layout";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import Confirmpopup from "@/components/reusesables/confirm-popup";
+
+// Convert the modals to dynamic imports
+const FuelAddModal = dynamic(
+  () => import("@/components/fuel-monitoring/FuelAddModal"),
+  { ssr: false }
+);
+
+const FuelEditModal = dynamic(
+  () => import("@/components/fuel-monitoring/FuelEditModal"),
+  { ssr: false }
+);
+
+const FuelViewDetailsModal = dynamic(
+  () => import("@/components/fuel-monitoring/FuelViewDetailsModal"),
+  { ssr: false }
+);
+
+const FuelHistoryModal = dynamic(
+  () => import("@/components/fuel-monitoring/FuelHistoryModal"),
+  { ssr: false }
+);
+
+const Confirmpopup = dynamic(
+  () => import("@/components/reusesables/confirm-popup"),
+  { ssr: false }
+);
 
 interface FuelLog {
   fuel_logs_id: string;
@@ -542,35 +570,43 @@ const ViewRecord = () => {
         </div>
 
         {isHistoryModalOpen && (
-          <FuelHistoryModal
-            isOpen={isHistoryModalOpen}
-            onClose={handleCloseHistoryModal}
-            history={historyData}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <FuelHistoryModal
+              isOpen={isHistoryModalOpen}
+              onClose={handleCloseHistoryModal}
+              history={historyData}
+            />
+          </Suspense>
         )}
         {isAddModalOpen && (
-          <FuelAddModal
-            selectedBus={selectedBus}
-            onClose={closeAddModal}
-            onAdd={handleAdd}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <FuelAddModal
+              selectedBus={selectedBus}
+              onClose={closeAddModal}
+              onAdd={handleAdd}
+            />
+          </Suspense>
         )}
 
         {isEditModalOpen && selectedFuelLog && (
-          <FuelEditModal
-            selectedBus={selectedBus}
-            selectedFuelLog={selectedFuelLog}
-            onClose={() => setIsEditModalOpen(false)}
-            onUpdate={handleUpdateSuccess}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <FuelEditModal
+              selectedBus={selectedBus}
+              selectedFuelLog={selectedFuelLog}
+              onClose={() => setIsEditModalOpen(false)}
+              onUpdate={handleUpdateSuccess}
+            />
+          </Suspense>
         )}
 
         {isViewDetailsOpen && (
-          <FuelViewDetailsModal
-            selectedBus={selectedBus}
-            viewData={viewData}
-            onClose={closeViewDetailsModal}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <FuelViewDetailsModal
+              selectedBus={selectedBus}
+              viewData={viewData}
+              onClose={closeViewDetailsModal}
+            />
+          </Suspense>
         )}
       </div>
     </Layout>

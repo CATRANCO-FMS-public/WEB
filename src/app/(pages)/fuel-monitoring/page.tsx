@@ -1,20 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+
+import { useRouter } from "next/navigation";
+
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { FaBus } from "react-icons/fa";
 import { Line } from "react-chartjs-2";
 import "chart.js/auto";
+
+import { groupByTimeInterval } from "../../helper/fuel-helper";
+
 import Layout from "@/components/Layout";
 import Header from "@/components/reusesables/header";
 import Pagination from "@/components/reusesables/pagination";
+
 import { fetchAllFuelLogs } from "@/services/fuellogsService";
 import { getAllVehicles } from "@/services/vehicleService";
 import { getAllMaintenanceScheduling } from "@/services/maintenanceService";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import { groupByTimeInterval } from "../../helper/fuel-helper";
-import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 
 const FuelMonitoring = () => {
   const router = useRouter();

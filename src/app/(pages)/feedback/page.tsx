@@ -1,15 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Layout from "@/components/Layout";
-import Header from "@/components/reusesables/header";
-import Confirmpopup from "@/components/reusesables/confirm-popup";
-import FeedbackRecord from "@/components/feedback/FeedbackRecord";
-import { fetchAllFuelLogs } from "../../../services/feedbackService";
-import Pagination from "@/components/reusesables/pagination";
+import dynamic from 'next/dynamic';
+
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import Pagination from "@/components/reusesables/pagination";
+import FeedbackRecord from "@/components/feedback/FeedbackRecord";
+
+import { fetchAllFuelLogs } from "../../../services/feedbackService";
+
+const Confirmpopup = dynamic(() => import("@/components/reusesables/confirm-popup"), {
+  ssr: false
+});
 
 interface FeedbackRecord {
   feedback_logs_id: string;
@@ -184,13 +191,21 @@ const FeedbackRecordDisplay = () => {
           </div>
         )}
       </div>
-      <Confirmpopup
-        isOpen={isDeletePopupOpen}
-        onClose={cancelDelete}
-        onConfirm={confirmDelete}
-        title="Delete Feedback"
-        message="Are you sure you want to delete this feedback?"
-      />
+      <Suspense fallback={
+        <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-lg shadow-lg">
+            Loading...
+          </div>
+        </div>
+      }>
+        <Confirmpopup
+          isOpen={isDeletePopupOpen}
+          onClose={cancelDelete}
+          onConfirm={confirmDelete}
+          title="Delete Feedback"
+          message="Are you sure you want to delete this feedback?"
+        />
+      </Suspense>
       <ToastContainer
         key={toastKey}
         position="top-right"
