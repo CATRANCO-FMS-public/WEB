@@ -1,21 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
-import Layout from "@/components/Layout";
-import Header from "@/components/reusesables/header";
-import Confirmpopup from "@/components/reusesables/confirm-popup";
-import AddDeviceModal from "@/components/device/AddDeviceModal";
-import Pagination from "@/components/reusesables/pagination";
-import { FaPlus } from "react-icons/fa";
-import DeviceRecord from "@/components/device/DeviceRecord";
-import {
-  getAllTrackerVehicleMappings,
-  deleteTrackerVehicleMapping,
-} from "@/services/deviceService";
-import EditDeviceModal from "@/components/device/EditDeviceModal";
+import React, { useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
+import dynamic from 'next/dynamic';
+
+import { FaPlus } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import Pagination from "@/components/reusesables/pagination";
+import DeviceRecord from "@/components/device/DeviceRecord";
+
+import { getAllTrackerVehicleMappings, deleteTrackerVehicleMapping } from "@/services/deviceService";
+
+const Confirmpopup = dynamic(
+  () => import("@/components/reusesables/confirm-popup"),
+  { ssr: false }
+);
+
+const AddDeviceModal = dynamic(
+  () => import("@/components/device/AddDeviceModal"),
+  { ssr: false }
+);
+
+const EditDeviceModal = dynamic(
+  () => import("@/components/device/EditDeviceModal"),
+  { ssr: false }
+);
 
 // Define the device type
 interface Device {
@@ -32,8 +45,8 @@ const DeviceManagement = () => {
   const itemsPerPage = 4; // Limit to 4 cards per page
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [deleteRecordId, setDeleteRecordId] = useState<number | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddDeviceModalOpen, setIsAddDeviceModalOpen] = useState(false);
+  const [isEditDeviceModalOpen, setIsEditDeviceModalOpen] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [toastKey, setToastKey] = React.useState(0);
   const toastId = React.useRef<string | number | null>(null);
@@ -115,7 +128,7 @@ const DeviceManagement = () => {
 
   const handleAddNewDevice = async () => {
     const operation = async () => {
-      setIsAddModalOpen(false);
+      setIsAddDeviceModalOpen(false);
       await refetch();
     };
 
@@ -147,12 +160,12 @@ const DeviceManagement = () => {
 
   const handleEdit = (deviceId: number) => {
     setSelectedDeviceId(deviceId);
-    setIsEditModalOpen(true);
+    setIsEditDeviceModalOpen(true);
   };
 
   const handleEditSave = async () => {
     const operation = async () => {
-      setIsEditModalOpen(false);
+      setIsEditDeviceModalOpen(false);
       await refetch();
     };
 
@@ -187,7 +200,7 @@ const DeviceManagement = () => {
               </div>
               <button
                 className="flex items-center justify-center px-4 py-2 border-2 border-blue-500 rounded-md text-blue-500 transition-colors duration-300 ease-in-out hover:bg-blue-50"
-                onClick={() => setIsAddModalOpen(true)}
+                onClick={() => setIsAddDeviceModalOpen(true)}
               >
                 <FaPlus className="mr-2" /> Add New
               </button>
@@ -228,24 +241,42 @@ const DeviceManagement = () => {
           </div>
         </div>
 
-        <AddDeviceModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onSave={handleAddNewDevice}
-        />
-        <EditDeviceModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          deviceId={selectedDeviceId}
-          onSave={handleEditSave}
-        />
-        <Confirmpopup
-          isOpen={isDeletePopupOpen}
-          onConfirm={confirmDelete}
-          onClose={cancelDelete}
-          title="Delete Device"
-          message="Are you sure you want to delete this tracker-to-vehicle mapping?"
-        />
+        {/* Confirm Popup */}
+        {isDeletePopupOpen && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <Confirmpopup 
+              isOpen={isDeletePopupOpen}
+              onConfirm={confirmDelete}
+              onClose={cancelDelete}
+              title="Delete Device"
+              message="Are you sure you want to delete this tracker-to-vehicle mapping?"
+            />
+          </Suspense>
+        )}
+
+        {/* Add Device Modal */}
+        {isAddDeviceModalOpen && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <AddDeviceModal 
+              isOpen={isAddDeviceModalOpen}
+              onClose={() => setIsAddDeviceModalOpen(false)}
+              onSave={handleAddNewDevice}
+            />
+          </Suspense>
+        )}
+
+        {/* Edit Device Modal */}
+        {isEditDeviceModalOpen && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <EditDeviceModal 
+              isOpen={isEditDeviceModalOpen}
+              onClose={() => setIsEditDeviceModalOpen(false)}
+              deviceId={selectedDeviceId}
+              onSave={handleEditSave}
+            />
+          </Suspense>
+        )}
+
         <ToastContainer
           key={toastKey}
           position="top-right"

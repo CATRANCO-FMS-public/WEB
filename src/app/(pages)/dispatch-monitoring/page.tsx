@@ -1,12 +1,22 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useQuery } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+
+import { FaBus } from "react-icons/fa";
+
+import Pusher from "pusher-js";
+import Echo from "laravel-echo";
+import { ToastContainer, toast } from 'react-toastify';
+
 import Layout from "@/components/Layout";
 import Header from "@/components/reusesables/header";
 import DispatchMap from "@/components/reusesables/dispatch-map";
-import Pusher from "pusher-js";
-import Echo from "laravel-echo";
-import { FaBus } from "react-icons/fa";
+import { MapProvider } from "@/providers/MapProvider";
+import StaticLocationsData from "@/components/extras/StaticLocationsData";
+
 import { getAllVehicleAssignments } from "../../../services/vehicleAssignService";
 import {
   startAlley,
@@ -17,12 +27,16 @@ import {
   deleteRecord,
   endDispatch,
 } from "../../../services/dispatchService";
-import { MapProvider } from "@/providers/MapProvider";
-import AlleyModal from "@/components/dispatch_monitoring/AlleyModal";
-import DispatchModal from "@/components/dispatch_monitoring/DispatchModal";
-import StaticLocationsData from "@/components/extras/StaticLocationsData";
-import { useQuery } from '@tanstack/react-query';
-import { ToastContainer, toast } from 'react-toastify';
+
+const AlleyModal = dynamic(
+  () => import("@/components/dispatch_monitoring/AlleyModal"),
+  { ssr: false }
+);
+
+const DispatchModal = dynamic(
+  () => import("@/components/dispatch_monitoring/DispatchModal"),
+  { ssr: false }
+);
 
 interface VehicleAssignmentData {
   number: string;
@@ -601,22 +615,30 @@ const DispatchMonitoring: React.FC = () => {
       </section>
 
       {/* Alley Modal */}
-      <AlleyModal
-        isOpen={isAlleyModalOpen}
-        vehicleData={modalVehicleData}
-        onClose={() => setIsAlleyModalOpen(false)}
-        onConfirm={handleAlleyConfirm}
-        availableRoutes={["Canitoan", "Silver Creek", "Cogon"]}
-      />
+      {isAlleyModalOpen && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <AlleyModal 
+            isOpen={isAlleyModalOpen}
+            vehicleData={modalVehicleData}
+            onClose={() => setIsAlleyModalOpen(false)}
+            onConfirm={handleAlleyConfirm}
+            availableRoutes={["Canitoan", "Silver Creek", "Cogon"]}
+          />
+        </Suspense>
+      )}
 
-      {/* Alley Modal */}
-      <DispatchModal
-        isOpen={isDispatchModalOpen}
-        vehicleData={modalVehicleData}
-        onClose={() => setIsDispatchModalOpen(false)}
-        onConfirm={handleDispatchConfirm}
-        availableRoutes={["Canitoan", "Silver Creek", "Cogon"]}
-      />
+      {/* Dispatch Modal */}
+      {isDispatchModalOpen && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <DispatchModal 
+            isOpen={isDispatchModalOpen}
+            vehicleData={modalVehicleData}
+            onClose={() => setIsDispatchModalOpen(false)}
+            onConfirm={handleDispatchConfirm}
+            availableRoutes={["Canitoan", "Silver Creek", "Cogon"]}
+          />
+        </Suspense>
+      )}
     </Layout>
   );
 };

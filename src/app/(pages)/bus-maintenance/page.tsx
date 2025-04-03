@@ -1,14 +1,18 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
+
+import dynamic from 'next/dynamic';
+
+import { FaPlus, FaHistory } from "react-icons/fa";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import Layout from "@/components/Layout";
 import Header from "@/components/reusesables/header";
-import MaintenanceAddModal from "@/components/bus-maintenance/MaintenanceAddModal";
-import MaintenanceEditModal from "@/components/bus-maintenance/MaintenanceEditModal";
-import CompletionProofModal from "@/components/bus-maintenance/CompletionProofModal"; // Component for proof submission
-import ViewProofModal from "@/components/bus-maintenance/ViewProofModal"; // Component for viewing proof
 import Pagination from "@/components/reusesables/pagination";
-import { FaPlus, FaHistory } from "react-icons/fa";
-import { useQuery } from "@tanstack/react-query";
+
 import {
   getAllActiveMaintenanceScheduling,
   getAllCompletedMaintenanceScheduling,
@@ -17,10 +21,31 @@ import {
   deleteMaintenanceScheduling,
   toggleMaintenanceSchedulingStatus,
 } from "../../../services/maintenanceService";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-import MaintenanceHistoryModal from "@/components/bus-maintenance/MaintenanceHistoryModal";
+const MaintenanceAddModal = dynamic(
+  () => import("@/components/bus-maintenance/MaintenanceAddModal"),
+  { ssr: false }
+);
+
+const MaintenanceEditModal = dynamic(
+  () => import("@/components/bus-maintenance/MaintenanceEditModal"),
+  { ssr: false }
+);
+
+const CompletionProofModal = dynamic(
+  () => import("@/components/bus-maintenance/CompletionProofModal"),
+  { ssr: false }
+);
+
+const ViewProofModal = dynamic(
+  () => import("@/components/bus-maintenance/ViewProofModal"),
+  { ssr: false }
+);
+
+const MaintenanceHistoryModal = dynamic(
+  () => import("@/components/bus-maintenance/MaintenanceHistoryModal"),
+  { ssr: false }
+);
 
 // Define interface for MaintenanceRecord
 interface MaintenanceRecord {
@@ -486,40 +511,60 @@ const MaintenanceManagement = () => {
         )}
 
         {/* Modals */}
-        <MaintenanceAddModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onSave={handleSave}
-        />
-        <MaintenanceEditModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          record={currentRecord}
-          onSave={handleSave}
-        />
-        <CompletionProofModal
-          isOpen={isProofModalOpen}
-          onClose={() => setIsProofModalOpen(false)}
-          record={currentRecord}
-          onSubmit={handleProofSubmit}
-        />
-        <ViewProofModal
-          isOpen={isViewProofModalOpen}
-          onClose={() => setIsViewProofModalOpen(false)}
-          proof={currentRecord?.maintenance_complete_proof}
-          onReturnToActive={() => {
-            if (currentRecord?.maintenance_scheduling_id) {
-              handleReturnToActive(currentRecord.maintenance_scheduling_id);
-            } else {
-              console.error("Maintenance scheduling ID is undefined.");
-            }
-          }}
-        />
-        <MaintenanceHistoryModal
-          isOpen={isHistoryModalOpen}
-          onClose={() => setIsHistoryModalOpen(false)}
-          history={filteredRecords} // Pass the records to the modal
-        />
+        {isAddModalOpen && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <MaintenanceAddModal 
+              isOpen={isAddModalOpen}
+              onClose={() => setIsAddModalOpen(false)}
+              onSave={handleSave}
+            />
+          </Suspense>
+        )}
+        {isEditModalOpen && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <MaintenanceEditModal 
+              isOpen={isEditModalOpen}
+              onClose={() => setIsEditModalOpen(false)}
+              record={currentRecord}
+              onSave={handleSave}
+            />
+          </Suspense>
+        )}
+        {isProofModalOpen && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <CompletionProofModal 
+              isOpen={isProofModalOpen}
+              onClose={() => setIsProofModalOpen(false)}
+              record={currentRecord}
+              onSubmit={handleProofSubmit}
+            />
+          </Suspense>
+        )}
+        {isViewProofModalOpen && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ViewProofModal 
+              isOpen={isViewProofModalOpen}
+              onClose={() => setIsViewProofModalOpen(false)}
+              proof={currentRecord?.maintenance_complete_proof}
+              onReturnToActive={() => {
+                if (currentRecord?.maintenance_scheduling_id) {
+                  handleReturnToActive(currentRecord.maintenance_scheduling_id);
+                } else {
+                  console.error("Maintenance scheduling ID is undefined.");
+                }
+              }}
+            />
+          </Suspense>
+        )}
+        {isHistoryModalOpen && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <MaintenanceHistoryModal 
+              isOpen={isHistoryModalOpen}
+              onClose={() => setIsHistoryModalOpen(false)}
+              history={filteredRecords} // Pass the records to the modal
+            />
+          </Suspense>
+        )}
         <ConfirmationModal
           isOpen={isConfirmModalOpen}
           onClose={() => setIsConfirmModalOpen(false)}
