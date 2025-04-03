@@ -1,17 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Layout from "@/components/Layout";
-import Header from "@/components/reusesables/header";
-import { FaBus, FaCog, FaUsers } from "react-icons/fa";
-import { getAllVehicles } from "@/services/vehicleService";
-import { getAllActiveMaintenanceScheduling } from "../../../services/maintenanceService";
-import { getAllProfiles } from "@/services/userProfile";
-import { MapProvider } from "@/providers/MapProvider";
+import { useQuery } from "@tanstack/react-query";
+
 import Pusher from "pusher-js";
 import Echo from "laravel-echo";
+import { FaBus, FaCog, FaUsers } from "react-icons/fa";
+
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
 import DispatchMap from "@/components/reusesables/dispatch-map";
-import { useQuery } from "@tanstack/react-query";
+
+import { MapProvider } from "@/providers/MapProvider";
+
+import { getAllProfiles } from "@/services/userProfile";
+import { getAllVehicles } from "@/services/vehicleService";
+import { getAllActiveMaintenanceScheduling } from "../../../services/maintenanceService";
 
 interface BusData {
   number: string;

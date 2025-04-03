@@ -1,12 +1,16 @@
 "use client";
-import Sidebar from "@/components/reusesables/sidebar";
-import Header from "@/components/reusesables/header";
 import React, { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+
 import { useRouter } from "next/navigation";
+
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { createVehicle } from "@/services/vehicleService"; // Adjust the import path as necessary
+
+import { Input } from "@/components/ui/input";
+import Sidebar from "@/components/reusesables/sidebar";
+import Header from "@/components/reusesables/header";
+
+import { createVehicle } from "@/services/vehicleService";
 
 const BusAdd = () => {
   const [dropdownVisible, setDropdownVisible] = useState(false);

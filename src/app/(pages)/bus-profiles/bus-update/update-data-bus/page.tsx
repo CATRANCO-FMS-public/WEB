@@ -1,11 +1,15 @@
 "use client";
-import Sidebar from "@/components/reusesables/sidebar";
-import Header from "@/components/reusesables/header";
+
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
+import Sidebar from "@/components/reusesables/sidebar";
+import Header from "@/components/reusesables/header"
+import { Input } from "@/components/ui/input";
+
 import { getVehicleById, updateVehicle } from "@/services/vehicleService";
 
 const BusUpdate = () => {

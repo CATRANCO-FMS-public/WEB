@@ -1,23 +1,64 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Layout from "@/components/Layout";
-import Header from "@/components/reusesables/header";
-import Confirmpopup from "@/components/reusesables/confirm-popup";
-import AddDriverModal from "@/components/bus-personnel/AddDriverModal";
-import AddAssistantOfficerModal from "@/components/bus-personnel/AddAssistantOfficerModal";
-import EditDriverModal from "@/components/bus-personnel/EditDriverModal";
-import EditAssistantOfficerModal from "@/components/bus-personnel/EditAssistantOfficerModal";
-import Pagination from "@/components/reusesables/pagination"; // Import Pagination Component
+import dynamic from 'next/dynamic';
+
 import { FaPlus, FaHistory } from "react-icons/fa";
-import PersonnelRecord from "@/components/bus-personnel/PersonnelRecord";
-import { getAllProfiles, deleteProfile } from "@/services/userProfile";
-import HistoryModal from "@/components/bus-personnel/HistoryModal";
-import ViewBioDataModal from "@/components/bus-personnel/ViewBioDataModal";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import AddDispatcherModal from "@/components/bus-personnel/AddDispatcherModal";
-import EditDispatcherModal from "@/components/bus-personnel/EditDispatcherModal";
+
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import Pagination from "@/components/reusesables/pagination";
+import PersonnelRecord from "@/components/bus-personnel/PersonnelRecord";
+
+import { getAllProfiles, deleteProfile } from "@/services/userProfile";
+
+const Confirmpopup = dynamic(
+  () => import("@/components/reusesables/confirm-popup"),
+  { ssr: false }
+);
+
+const AddDriverModal = dynamic(
+  () => import("@/components/bus-personnel/AddDriverModal"),
+  { ssr: false }
+);
+
+const AddAssistantOfficerModal = dynamic(
+  () => import("@/components/bus-personnel/AddAssistantOfficerModal"),
+  { ssr: false }
+);
+
+const EditDriverModal = dynamic(
+  () => import("@/components/bus-personnel/EditDriverModal"),
+  { ssr: false }
+);
+
+const EditAssistantOfficerModal = dynamic(
+  () => import("@/components/bus-personnel/EditAssistantOfficerModal"),
+  { ssr: false }
+);
+
+const HistoryModal = dynamic(
+  () => import("@/components/bus-personnel/HistoryModal"),
+  { ssr: false }
+);
+
+const ViewBioDataModal = dynamic(
+  () => import("@/components/bus-personnel/ViewBioDataModal"),
+  { ssr: false }
+);
+
+const AddDispatcherModal = dynamic(
+  () => import("@/components/bus-personnel/AddDispatcherModal"),
+  { ssr: false }
+);
+
+const EditDispatcherModal = dynamic(
+  () => import("@/components/bus-personnel/EditDispatcherModal"),
+  { ssr: false }
+);
 
 const extractHistoryFromProfiles = (profiles) => {
   return profiles.map((profile) => ({
@@ -362,63 +403,81 @@ const Personnel = () => {
           </div>
         </div>
         {activeButton === "drivers" ? (
-          <AddDriverModal
-            isOpen={isAddModalOpen}
-            onClose={() => setIsAddModalOpen(false)}
-            onSave={handleAddNew}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <AddDriverModal
+              isOpen={isAddModalOpen}
+              onClose={() => setIsAddModalOpen(false)}
+              onSave={handleAddNew}
+            />
+          </Suspense>
         ) : activeButton === "conductors" ? (
-          <AddAssistantOfficerModal
-            isOpen={isAddModalOpen}
-            onClose={() => setIsAddModalOpen(false)}
-            onSave={handleAddNew}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <AddAssistantOfficerModal
+              isOpen={isAddModalOpen}
+              onClose={() => setIsAddModalOpen(false)}
+              onSave={handleAddNew}
+            />
+          </Suspense>
         ) : (
-          <AddDispatcherModal
-            isOpen={isAddModalOpen}
-            onClose={() => setIsAddModalOpen(false)}
-            onSave={handleAddNew}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <AddDispatcherModal
+              isOpen={isAddModalOpen}
+              onClose={() => setIsAddModalOpen(false)}
+              onSave={handleAddNew}
+            />
+          </Suspense>
         )}
         {activeButton === "drivers" ? (
-          <EditDriverModal
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            userProfileId={selectedProfileId}
-            onSave={handleSaveEdit}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <EditDriverModal
+              isOpen={isEditModalOpen}
+              onClose={() => setIsEditModalOpen(false)}
+              userProfileId={selectedProfileId}
+              onSave={handleSaveEdit}
+            />
+          </Suspense>
         ) : activeButton === "conductors" ? (
-          <EditAssistantOfficerModal
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            userProfileId={selectedProfileId}
-            onSave={handleSaveEdit}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <EditAssistantOfficerModal
+              isOpen={isEditModalOpen}
+              onClose={() => setIsEditModalOpen(false)}
+              userProfileId={selectedProfileId}
+              onSave={handleSaveEdit}
+            />
+          </Suspense>
         ) : (
-          <EditDispatcherModal
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            userProfileId={selectedProfileId}
-            onSave={handleSaveEdit}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <EditDispatcherModal
+              isOpen={isEditModalOpen}
+              onClose={() => setIsEditModalOpen(false)}
+              userProfileId={selectedProfileId}
+              onSave={handleSaveEdit}
+            />
+          </Suspense>
         )}
-        <ViewBioDataModal
-          isOpen={isViewBioDataModalOpen}
-          onClose={() => setIsViewBioDataModalOpen(false)}
-          profile={selectedProfile}
-        />
-        <Confirmpopup
-          isOpen={isDeletePopupOpen}
-          onClose={cancelDelete} // This will be called when Cancel is clicked
-          onConfirm={confirmDelete} // This will be called when Confirm is clicked
-          title="Delete Profile"
-          message="Are you sure you want to delete this profile?"
-        />
-        <HistoryModal
-          isOpen={isHistoryModalOpen}
-          onClose={() => setIsHistoryModalOpen(false)}
-          history={personnelHistory}
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <ViewBioDataModal
+            isOpen={isViewBioDataModalOpen}
+            onClose={() => setIsViewBioDataModalOpen(false)}
+            profile={selectedProfile}
+          />
+        </Suspense>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Confirmpopup
+            isOpen={isDeletePopupOpen}
+            onClose={cancelDelete}
+            onConfirm={confirmDelete}
+            title="Delete Profile"
+            message="Are you sure you want to delete this profile?"
+          />
+        </Suspense>
+        <Suspense fallback={<div>Loading...</div>}>
+          <HistoryModal
+            isOpen={isHistoryModalOpen}
+            onClose={() => setIsHistoryModalOpen(false)}
+            history={personnelHistory}
+          />
+        </Suspense>
         <ToastContainer
           key={toastKey}
           position="top-right"

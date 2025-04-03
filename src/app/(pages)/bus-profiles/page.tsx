@@ -1,22 +1,42 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Layout from "@/components/Layout";
-import Header from "@/components/reusesables/header";
-import Confirmpopup from "@/components/reusesables/confirm-popup";
+
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+
 import { FaSearch, FaPlus, FaHistory } from "react-icons/fa";
-import BusRecord from "@/components/bus-profile/BusRecord";
-import AddBusRecordModal from "@/components/bus-profile/AddBusRecordModal";
-import AssignBusPersonnelModal from "@/components/bus-profile/AssignBusPersonnelModal";
-import Pagination from "@/components/reusesables/pagination";
-import { getAllVehicles, deleteVehicle } from "../../../services/vehicleService";
-import {
-  getAllVehicleAssignments,
-  deleteVehicleAssignment,
-} from "../../../services/vehicleAssignService";
-import HistoryModalForBus from "@/components/bus-profile/HistoryModalForBus";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import Layout from "@/components/Layout";
+import Header from "@/components/reusesables/header";
+import BusRecord from "@/components/bus-profile/BusRecord";
+import Pagination from "@/components/reusesables/pagination";
+
+// Convert the modals to dynamic imports
+const Confirmpopup = dynamic(
+  () => import("@/components/reusesables/confirm-popup"),
+  { ssr: false }
+);
+
+const AddBusRecordModal = dynamic(
+  () => import("@/components/bus-profile/AddBusRecordModal"),
+  { ssr: false }
+);
+
+const AssignBusPersonnelModal = dynamic(
+  () => import("@/components/bus-profile/AssignBusPersonnelModal"),
+  { ssr: false }
+);
+
+const HistoryModalForBus = dynamic(
+  () => import("@/components/bus-profile/HistoryModalForBus"),
+  { ssr: false }
+);
+
+import { getAllVehicles, deleteVehicle } from "../../../services/vehicleService";
+import { getAllVehicleAssignments, deleteVehicleAssignment } from "../../../services/vehicleAssignService";
 
 const BusRecordDisplay = () => {
   const queryClient = useQueryClient();
@@ -422,43 +442,51 @@ const BusRecordDisplay = () => {
         )}
       </div>
       {isDeletePopupOpen && (
-        <Confirmpopup
-          isOpen={isDeletePopupOpen}
-          onClose={cancelDelete}
-          onConfirm={confirmDelete}
-          title="Delete Profile"
-          message="Are you sure you want to delete this profile?"
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <Confirmpopup
+            isOpen={isDeletePopupOpen}
+            onClose={cancelDelete}
+            onConfirm={confirmDelete}
+            title="Delete Profile"
+            message="Are you sure you want to delete this profile?"
+          />
+        </Suspense>
       )}
       {isAddModalOpen && (
-        <AddBusRecordModal
-          onClose={() => setIsAddModalOpen(false)}
-          refreshData={() => queryClient.invalidateQueries({ queryKey: ['vehicles'] })}
-          onSubmit={(newBus) => {
-            handleAddNewBus(newBus);
-          }}
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <AddBusRecordModal
+            onClose={() => setIsAddModalOpen(false)}
+            refreshData={() => queryClient.invalidateQueries({ queryKey: ['vehicles'] })}
+            onSubmit={(newBus) => {
+              handleAddNewBus(newBus);
+            }}
+          />
+        </Suspense>
       )}
       {isAssignPersonnelModalOpen && (
-        <AssignBusPersonnelModal
-          onClose={() => setIsAssignPersonnelModalOpen(false)}
-          refreshData={() => {
-            queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-          }}
-          onAssign={(newAssignment) => {
-            handleAddVehicleAssignment(newAssignment);
-          }}
-          vehicleId={selectedVehicleId}
-          preSelectedVehicle={selectedVehicleId}
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <AssignBusPersonnelModal
+            onClose={() => setIsAssignPersonnelModalOpen(false)}
+            refreshData={() => {
+              queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+            }}
+            onAssign={(newAssignment) => {
+              handleAddVehicleAssignment(newAssignment);
+            }}
+            vehicleId={selectedVehicleId}
+            preSelectedVehicle={selectedVehicleId}
+          />
+        </Suspense>
       )}
 
       {isHistoryModalOpen && (
-        <HistoryModalForBus
-          isOpen={isHistoryModalOpen}
-          onClose={() => setIsHistoryModalOpen(false)}
-          history={busHistory}
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <HistoryModalForBus
+            isOpen={isHistoryModalOpen}
+            onClose={() => setIsHistoryModalOpen(false)}
+            history={busHistory}
+          />
+        </Suspense>
       )}
     </Layout>
   );

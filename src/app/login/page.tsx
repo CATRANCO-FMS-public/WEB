@@ -46,10 +46,28 @@ export default function AuthPage() {
   const router = useRouter();
 
   React.useEffect(() => {
-    const authToken = getToken();
-    if (authToken) {
-      router.replace("/dashboard"); // Redirect immediately if token exists
-    }
+    const checkAuth = async () => {
+      const authToken = getToken();
+      if (authToken) {
+        // Start progress animation for auth check and redirect
+        setRedirectProgress(20);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setRedirectProgress(40);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setRedirectProgress(60);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setRedirectProgress(80);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setRedirectProgress(100);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        router.replace("/dashboard");
+      } else {
+        setRedirectProgress(0);
+      }
+    };
+
+    checkAuth();
   }, [router]);
 
   // Handle form field changes
