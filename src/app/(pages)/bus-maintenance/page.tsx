@@ -16,7 +16,7 @@ import {
   updateMaintenanceScheduling,
   deleteMaintenanceScheduling,
   toggleMaintenanceSchedulingStatus,
-} from "../../services/maintenanceService";
+} from "../../../services/maintenanceService";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

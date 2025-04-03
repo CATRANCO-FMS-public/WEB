@@ -8,7 +8,7 @@ import {
   updateAccount,
   updateOwnAccount,
   getOwnProfile,
-} from "../../services/authService";
+} from "../../../services/authService";
 import { useQuery } from "@tanstack/react-query";
 
 const EditProfile: React.FC = () => {

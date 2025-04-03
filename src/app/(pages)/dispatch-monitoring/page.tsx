@@ -7,7 +7,7 @@ import DispatchMap from "@/components/reusesables/dispatch-map";
 import Pusher from "pusher-js";
 import Echo from "laravel-echo";
 import { FaBus } from "react-icons/fa";
-import { getAllVehicleAssignments } from "../../services/vehicleAssignService";
+import { getAllVehicleAssignments } from "../../../services/vehicleAssignService";
 import {
   startAlley,
   getAllOnAlley,
@@ -16,7 +16,7 @@ import {
   endAlley,
   deleteRecord,
   endDispatch,
-} from "../../services/dispatchService";
+} from "../../../services/dispatchService";
 import { MapProvider } from "@/providers/MapProvider";
 import AlleyModal from "@/components/dispatch_monitoring/AlleyModal";
 import DispatchModal from "@/components/dispatch_monitoring/DispatchModal";

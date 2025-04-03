@@ -14,8 +14,8 @@ import FuelViewDetailsModal from "@/components/fuel-monitoring/FuelViewDetailsMo
 import {
   fetchAllFuelLogs,
   deleteFuelLog,
-} from "../../../services/fuellogsService";
-import { groupByTimeInterval } from "../../helper/fuel-helper";
+} from "../../../../services/fuellogsService";
+import { groupByTimeInterval } from "../../../helper/fuel-helper";
 import FuelHistoryModal from "@/components/fuel-monitoring/FuelHistoryModal";
 import Layout from "@/components/Layout";
 import { ToastContainer, toast } from "react-toastify";

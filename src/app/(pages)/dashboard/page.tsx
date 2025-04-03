@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import Header from "@/components/reusesables/header";
 import { FaBus, FaCog, FaUsers } from "react-icons/fa";
 import { getAllVehicles } from "@/services/vehicleService";
-import { getAllActiveMaintenanceScheduling } from "../../services/maintenanceService";
+import { getAllActiveMaintenanceScheduling } from "../../../services/maintenanceService";
 import { getAllProfiles } from "@/services/userProfile";
 import { MapProvider } from "@/providers/MapProvider";
 import Pusher from "pusher-js";

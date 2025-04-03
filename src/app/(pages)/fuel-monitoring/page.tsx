@@ -12,7 +12,7 @@ import { getAllVehicles } from "@/services/vehicleService";
 import { getAllMaintenanceScheduling } from "@/services/maintenanceService";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { groupByTimeInterval } from "../helper/fuel-helper";
+import { groupByTimeInterval } from "../../helper/fuel-helper";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 

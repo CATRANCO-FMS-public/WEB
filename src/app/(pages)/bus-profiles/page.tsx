@@ -9,11 +9,11 @@ import BusRecord from "@/components/bus-profile/BusRecord";
 import AddBusRecordModal from "@/components/bus-profile/AddBusRecordModal";
 import AssignBusPersonnelModal from "@/components/bus-profile/AssignBusPersonnelModal";
 import Pagination from "@/components/reusesables/pagination";
-import { getAllVehicles, deleteVehicle } from "../../services/vehicleService";
+import { getAllVehicles, deleteVehicle } from "../../../services/vehicleService";
 import {
   getAllVehicleAssignments,
   deleteVehicleAssignment,
-} from "../../services/vehicleAssignService";
+} from "../../../services/vehicleAssignService";
 import HistoryModalForBus from "@/components/bus-profile/HistoryModalForBus";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

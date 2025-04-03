@@ -19,6 +19,16 @@ const Spinner = () => (
   </div>
 );
 
+// Progress Bar Component
+const ProgressBar = ({ progress }: { progress: number }) => (
+  <div className="fixed top-0 left-0 w-full z-[9999]">
+    <div 
+      className="h-2 bg-gradient-to-r from-blue-500 to-red-500 transition-all duration-300 ease-out"
+      style={{ width: `${progress}%` }}
+    />
+  </div>
+);
+
 interface FormData {
   username: string;
   password: string;
@@ -32,6 +42,7 @@ export default function AuthPage() {
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [redirectProgress, setRedirectProgress] = useState(0);
   const router = useRouter();
 
   React.useEffect(() => {
@@ -81,9 +92,19 @@ export default function AuthPage() {
         
         toast.success("Successfully logged in!");
         
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1000);
+        // Start progress animation
+        setRedirectProgress(20);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setRedirectProgress(40);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setRedirectProgress(60);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setRedirectProgress(80);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setRedirectProgress(100);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        router.push("/dashboard");
       } else {
         toast.error("Login failed. Please check your credentials.");
       }
@@ -91,6 +112,7 @@ export default function AuthPage() {
       toast.error(error.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
+      setRedirectProgress(0); // Reset progress
     }
   };
 
@@ -108,6 +130,8 @@ export default function AuthPage() {
         pauseOnHover
         theme="light"
       />
+      
+      {redirectProgress > 0 && <ProgressBar progress={redirectProgress} />}
       
       {/* Left Side - Logo */}
       <div className="w-full md:w-1/2 h-[30vh] md:h-screen flex justify-center items-center">

@@ -23,6 +23,16 @@ const Spinner = () => (
   </div>
 );
 
+// ProgressBar component
+const ProgressBar = ({ progress }: { progress: number }) => (
+  <div className="fixed top-0 left-0 w-full z-[9999]">
+    <div 
+      className="h-2 bg-gradient-to-r from-blue-500 to-red-500 transition-all duration-300 ease-out"
+      style={{ width: `${progress}%` }}
+    />
+  </div>
+);
+
 interface HeaderProps {
   title: string;
 }
@@ -33,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
   const [burgerMenuVisible, setBurgerMenuVisible] = useState(false);
+  const [logoutProgress, setLogoutProgress] = useState(0);
 
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
@@ -58,9 +69,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
   const handleLogout = async () => {
     try {
-      // Hide the dropdown immediately when logout is clicked
       setDropdownVisible(false);
-      
       const token = getToken();
 
       if (!token) {
@@ -73,13 +82,21 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
       
       try {
         await logout();
-        
         toast.success("Successfully logged out!");
 
-        // Delay the redirect slightly to show the success message
-        setTimeout(() => {
-          router.push("/login");
-        }, 1000);
+        // Start progress animation
+        setLogoutProgress(20);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setLogoutProgress(40);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setLogoutProgress(60);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setLogoutProgress(80);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setLogoutProgress(100);
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        router.push("/login");
       } catch (error) {
         toast.error("Failed to logout. Please try again.");
       }
@@ -87,6 +104,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
       toast.error("Logout failed. Please try again.");
     } finally {
       setIsLoading(false);
+      setLogoutProgress(0); // Reset progress
     }
   };
 
@@ -110,8 +128,8 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
         theme="light"
       />
       
+      {logoutProgress > 0 && <ProgressBar progress={logoutProgress} />}
       {isLoading && <Spinner />}
-      
       
       <div className="icon-container">
         <div className="icons flex flex-row">

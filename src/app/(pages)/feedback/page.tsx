@@ -6,7 +6,7 @@ import Layout from "@/components/Layout";
 import Header from "@/components/reusesables/header";
 import Confirmpopup from "@/components/reusesables/confirm-popup";
 import FeedbackRecord from "@/components/feedback/FeedbackRecord";
-import { fetchAllFuelLogs } from "../../services/feedbackService";
+import { fetchAllFuelLogs } from "../../../services/feedbackService";
 import Pagination from "@/components/reusesables/pagination";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
