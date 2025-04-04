@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 import Pusher from "pusher-js";
 import Echo from "laravel-echo";
@@ -40,9 +41,13 @@ interface MaintenanceRecord {
 }
 
 const DashboardHeader: React.FC = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [busData, setBusData] = useState<BusData[]>([]);
   const [selectedBusDetails, setSelectedBusDetails] = useState<BusData | null>(null);
   const [pathData, setPathData] = useState<{ [busNumber: string]: { lat: number; lng: number }[] }>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   // Replace direct API calls with React Query
   const { data: vehicles } = useQuery({
@@ -146,6 +151,11 @@ const DashboardHeader: React.FC = () => {
     };
   }, []);
 
+  // Replace the router.events useEffect with this
+  useEffect(() => {
+    setIsLoading(false);
+  }, [pathname, searchParams]);
+
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
 
@@ -161,25 +171,64 @@ const DashboardHeader: React.FC = () => {
   return (
     <Layout>
       <Header title="Dashboard" />
+      {isLoading && (
+        <div className="fixed inset-0 bg-white bg-opacity-80 z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      )}
 
       <section className="flex flex-col lg:flex-row gap-6 p-4 lg:p-6 bg-slate-200">
         <div className="flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
-              <FaBus className="text-blue-500" size={40} />
-              <div>
-                <h1 className="text-2xl font-bold">{busesInOperation}</h1>
-                <p>Buses in Operation</p>
+            <div className="bg-white shadow-md rounded-lg p-4">
+              <div 
+                className="flex items-center space-x-4 mb-3 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => {
+                  setIsLoading(true);
+                  router.push('/bus-profiles');
+                }}
+              >
+                <FaBus className="text-blue-500" size={40} />
+                <div>
+                  <h1 className="text-2xl font-bold">{busesInOperation}</h1>
+                  <p>Buses in Operation</p>
+                </div>
               </div>
+              <button 
+                onClick={() => {
+                  setIsLoading(true);
+                  router.push('/fuel-monitoring');
+                }}
+                className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors text-sm"
+              >
+                View Fuel Monitoring
+              </button>
             </div>
-            <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
+
+            <div 
+              className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => {
+                setIsLoading(true);
+                router.push('/bus-maintenance');
+              }}
+            >
               <FaCog className="text-green-500" size={40} />
               <div>
                 <h1 className="text-2xl font-bold">{busesInMaintenance}</h1>
                 <p>Buses in Maintenance</p>
               </div>
             </div>
-            <div className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
+
+            <div 
+              className="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => {
+                setIsLoading(true);
+                router.push('/personnel');
+              }}
+            >
               <FaUsers className="text-purple-500" size={40} />
               <div>
                 <h1 className="text-2xl font-bold">{currentEmployees}</h1>
