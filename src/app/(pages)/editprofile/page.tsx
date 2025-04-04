@@ -1,15 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+
 import Sidebar2 from "@/components/reusesables/sidebar-settings";
 import Header from "@/components/reusesables/header";
+
 import {
   getProfile,
   updateAccount,
   updateOwnAccount,
   getOwnProfile,
 } from "../../../services/authService";
-import { useQuery } from "@tanstack/react-query";
+
 
 const EditProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"account" | "profile">("account");
