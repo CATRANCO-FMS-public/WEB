@@ -74,7 +74,6 @@ const ViewRecord = () => {
   const [selectedFuelLog, setSelectedFuelLog] = useState(null);
   const [selectedBus, setSelectedBus] = useState(busNumber);
   const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [timeInterval, setTimeInterval] = useState("daily");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewDetailsOpen, setIsViewDetailsOpen] = useState(false);
@@ -324,19 +323,6 @@ const ViewRecord = () => {
     setIsHistoryModalOpen(false);
   };
 
-  const itemsPerPage = 5;
-  const totalPages = Math.ceil(fuelLogs.length / itemsPerPage);
-  const displayedRecords = fuelLogs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
   const handlePrint = async () => {
     const operation = async () => {
       const chartElement = document.querySelector(".chart-container");
@@ -464,12 +450,12 @@ const ViewRecord = () => {
               />
             </div>
 
-            {/* Table Section - fix scrollbar visibility while maintaining background */}
+            {/* Table Section */}
             <div className="w-full max-w-full overflow-x-auto mt-4">
               <div className="table-container bg-white p-2 sm:p-4 rounded-lg shadow-lg">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(5 * 4.5rem)' }}>
                   <table className="w-full text-left text-sm sm:text-base min-w-max">
-                    <thead>
+                    <thead className="sticky top-0 bg-white z-10">
                       <tr>
                         <th className="py-2 px-2 sm:px-4">Date</th>
                         <th className="py-2 px-2 sm:px-4">Odometer KM</th>
@@ -482,26 +468,22 @@ const ViewRecord = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {displayedRecords
-                        .sort(
-                          (a, b) =>
-                            new Date(a.purchase_date).getTime() -
-                            new Date(b.purchase_date).getTime()
-                        )
+                      {fuelLogs
+                        .sort((a, b) => b.odometer_km - a.odometer_km)
                         .map((entry) => (
-                          <tr key={entry.fuel_logs_id} className="border-t">
-                            <td className="py-2 px-2 sm:px-4">
+                          <tr key={entry.fuel_logs_id} className="border-t hover:bg-gray-50">
+                            <td className="py-3 px-2 sm:px-4">
                               {new Date(entry.purchase_date).toLocaleDateString()}
                             </td>
-                            <td className="py-2 px-2 sm:px-4">{entry.odometer_km} KM</td>
-                            <td className="py-2 px-2 sm:px-4">{entry.distance_traveled} KM</td>
-                            <td className="py-2 px-2 sm:px-4">{entry.fuel_type}</td>
-                            <td className="py-2 px-2 sm:px-4">{entry.fuel_price}</td>
-                            <td className="py-2 px-2 sm:px-4">
+                            <td className="py-3 px-2 sm:px-4">{entry.odometer_km} KM</td>
+                            <td className="py-3 px-2 sm:px-4">{entry.distance_traveled} KM</td>
+                            <td className="py-3 px-2 sm:px-4">{entry.fuel_type}</td>
+                            <td className="py-3 px-2 sm:px-4">{entry.fuel_price}</td>
+                            <td className="py-3 px-2 sm:px-4">
                               {entry.fuel_liters_quantity} L
                             </td>
-                            <td className="py-2 px-2 sm:px-4">{entry.total_expense} PHP</td>
-                            <td className="py-2 px-2 sm:px-4">
+                            <td className="py-3 px-2 sm:px-4">{entry.total_expense} PHP</td>
+                            <td className="py-3 px-2 sm:px-4">
                               <div className="flex flex-row gap-1 sm:gap-2">
                                 <button
                                   onClick={() => handleViewDetails(entry)}
@@ -531,24 +513,8 @@ const ViewRecord = () => {
               </div>
             </div>
             
-            {/* Pagination and Actions */}
-            <div className="mt-4 flex flex-col sm:flex-row justify-between w-full gap-3 px-2">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed text-sm sm:text-base flex-1 sm:flex-none"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-300 text-gray-500 rounded disabled:cursor-not-allowed text-sm sm:text-base flex-1 sm:flex-none"
-                >
-                  Next
-                </button>
-              </div>
+            {/* Actions */}
+            <div className="mt-4 flex justify-end w-full gap-3 px-2">
               <div className="right-btn flex gap-2">
                 <button
                   className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center text-sm sm:text-base"
